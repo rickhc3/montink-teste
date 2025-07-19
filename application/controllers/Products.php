@@ -48,7 +48,13 @@ class Products extends CI_Controller {
 
         $name = $this->input->post('name');
         $price = $this->input->post('price');
-        $variations = $this->input->post('variations');
+        $stock_data = $this->input->post('stock');
+
+        // Log para debug
+        error_log("Update Product ID: " . $id);
+        error_log("Name: " . $name);
+        error_log("Price: " . $price);
+        error_log("Stock Data: " . print_r($stock_data, true));
 
         // Atualiza o produto
         $this->db->where('id', $id)->update('products', [
@@ -60,12 +66,25 @@ class Products extends CI_Controller {
         $this->db->where('product_id', $id)->delete('stock');
 
         // Adiciona novo estoque
-        foreach ($variations as $v) {
-            $this->db->insert('stock', [
-                'product_id' => $id,
-                'variation' => $v['name'],
-                'quantity' => $v['quantity']
-            ]);
+        if ($stock_data) {
+            foreach ($stock_data as $stock_item) {
+                if (!empty($stock_item['variation']) && isset($stock_item['quantity'])) {
+                    $insert_data = [
+                        'product_id' => $id,
+                        'variation' => $stock_item['variation'],
+                        'quantity' => (int)$stock_item['quantity']
+                    ];
+                    
+                    error_log("Inserting stock: " . print_r($insert_data, true));
+                    $this->db->insert('stock', $insert_data);
+                    
+                    if ($this->db->affected_rows() > 0) {
+                        error_log("Stock inserted successfully");
+                    } else {
+                        error_log("Error inserting stock: " . $this->db->error()['message']);
+                    }
+                }
+            }
         }
 
         redirect('products');
