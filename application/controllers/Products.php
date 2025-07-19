@@ -10,15 +10,15 @@ class Products extends CI_Controller {
     }
 
     public function index() {
-        $data['products'] = $this->db->query("
-            SELECT p.*, 
-                   GROUP_CONCAT(CONCAT(s.variation, ': ', s.quantity) SEPARATOR ', ') as variations
-            FROM products p
-            LEFT JOIN stock s ON p.id = s.product_id
-            GROUP BY p.id
-            ORDER BY p.created_at DESC
-        ")->result();
+        // Busca todos os produtos
+        $products = $this->db->order_by('created_at', 'DESC')->get('products')->result();
         
+        // Para cada produto, busca o estoque
+        foreach ($products as $product) {
+            $product->stock = $this->db->where('product_id', $product->id)->get('stock')->result();
+        }
+        
+        $data['products'] = $products;
         $this->load->view('products/index', $data);
     }
 
@@ -105,9 +105,19 @@ class Products extends CI_Controller {
                           ->where('variation', $variation)
                           ->get('stock')->row();
 
-        if (!$stock || $stock->quantity < $quantity) {
+        if (!$stock) {
             $this->output->set_content_type('application/json')
-                         ->set_output(json_encode(['success' => false, 'message' => 'Estoque insuficiente']));
+                         ->set_output(json_encode(['success' => false, 'message' => 'Variação não encontrada']));
+            return;
+        }
+
+        // Verifica se a quantidade solicitada está disponível
+        if ($stock->quantity < $quantity) {
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode([
+                             'success' => false, 
+                             'message' => "Estoque insuficiente. Disponível: {$stock->quantity}"
+                         ]));
             return;
         }
 
@@ -123,7 +133,19 @@ class Products extends CI_Controller {
         $item_key = $product_id . '_' . $variation;
 
         if (isset($cart[$item_key])) {
-            $cart[$item_key]['quantity'] += $quantity;
+            $new_quantity = $cart[$item_key]['quantity'] + $quantity;
+            
+            // Verifica se a nova quantidade total não excede o estoque
+            if ($new_quantity > $stock->quantity) {
+                $this->output->set_content_type('application/json')
+                             ->set_output(json_encode([
+                                 'success' => false, 
+                                 'message' => "Quantidade total excede o estoque. Disponível: {$stock->quantity}"
+                             ]));
+                return;
+            }
+            
+            $cart[$item_key]['quantity'] = $new_quantity;
         } else {
             $cart[$item_key] = [
                 'product_id' => $product_id,
@@ -160,6 +182,93 @@ class Products extends CI_Controller {
     public function checkout() {
         $data['cart'] = $this->session->userdata('cart') ?: [];
         $this->load->view('products/checkout', $data);
+    }
+
+    public function finalize_order() {
+        $cart = $this->session->userdata('cart') ?: [];
+        
+        if (empty($cart)) {
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode(['success' => false, 'message' => 'Carrinho vazio']));
+            return;
+        }
+
+        // Dados do pedido
+        $order_data = [
+            'total' => 0,
+            'status' => 'pending',
+            'created_at' => date('Y-m-d H:i:s')
+        ];
+
+        // Calcula total e verifica estoque novamente
+        foreach ($cart as $item) {
+            $order_data['total'] += $item['price'] * $item['quantity'];
+            
+            // Verifica se ainda há estoque suficiente
+            $stock = $this->db->where('product_id', $item['product_id'])
+                              ->where('variation', $item['variation'])
+                              ->get('stock')->row();
+            
+            if (!$stock || $stock->quantity < $item['quantity']) {
+                $this->output->set_content_type('application/json')
+                             ->set_output(json_encode([
+                                 'success' => false, 
+                                 'message' => "Estoque insuficiente para {$item['name']} - {$item['variation']}. Disponível: " . ($stock ? $stock->quantity : 0)
+                             ]));
+                return;
+            }
+        }
+
+        // Inicia transação
+        $this->db->trans_start();
+
+        try {
+            // Insere o pedido
+            $this->db->insert('orders', $order_data);
+            $order_id = $this->db->insert_id();
+
+            // Atualiza estoque e insere itens do pedido
+            foreach ($cart as $item) {
+                // Diminui o estoque
+                $this->db->where('product_id', $item['product_id'])
+                         ->where('variation', $item['variation'])
+                         ->set('quantity', 'quantity - ' . $item['quantity'], false)
+                         ->update('stock');
+                
+                // Insere item do pedido (se tivesse tabela order_items)
+                // $this->db->insert('order_items', [
+                //     'order_id' => $order_id,
+                //     'product_id' => $item['product_id'],
+                //     'variation' => $item['variation'],
+                //     'quantity' => $item['quantity'],
+                //     'price' => $item['price']
+                // ]);
+            }
+
+            $this->db->trans_complete();
+
+            if ($this->db->trans_status() === FALSE) {
+                $this->db->trans_rollback();
+                $this->output->set_content_type('application/json')
+                             ->set_output(json_encode(['success' => false, 'message' => 'Erro ao processar pedido']));
+                return;
+            }
+
+            // Limpa o carrinho
+            $this->session->unset_userdata('cart');
+
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode([
+                             'success' => true, 
+                             'message' => 'Pedido finalizado com sucesso!',
+                             'order_id' => $order_id
+                         ]));
+
+        } catch (Exception $e) {
+            $this->db->trans_rollback();
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode(['success' => false, 'message' => 'Erro ao processar pedido: ' . $e->getMessage()]));
+        }
     }
 
     public function calculate_shipping() {

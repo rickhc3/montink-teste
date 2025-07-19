@@ -4,118 +4,136 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Produto - Montink</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://unpkg.com/imask"></script>
-    <style>
-        .form-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-    </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-4">
-    <div class="max-w-6xl mx-auto">
-        <div class="bg-white rounded-lg shadow-xl p-8">
-            <div class="flex items-center justify-between mb-6">
-                <h1 class="text-3xl font-bold text-gray-800">Editar Produto</h1>
-                <a href="<?= base_url('products') ?>" class="text-blue-600 hover:text-blue-800 text-sm">← Voltar</a>
-            </div>
-
-            <!-- Formulário de Edição -->
-            <form method="post" action="<?= base_url('products/update/' . $product->id) ?>" class="space-y-6 mb-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Nome do Produto</label>
-                        <input type="text" name="name" value="<?= htmlspecialchars($product->name) ?>" class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Digite o nome do produto" required>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Preço</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-3 text-gray-500">R$</span>
-                            <input type="text" name="price" id="price" value="<?= number_format($product->price, 2, ',', '.') ?>" class="form-input w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0,00" required>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-12">
+                <div class="card shadow">
+                    <div class="card-body p-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h1 class="card-title h2 mb-0">Editar Produto</h1>
+                            <a href="<?= base_url() ?>" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-arrow-left"></i> Voltar
+                            </a>
                         </div>
-                    </div>
-                </div>
 
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Variações</label>
-                    <div id="variations-wrapper" class="space-y-3">
-                        <?php foreach ($stock as $index => $item): ?>
-                            <div class="flex gap-3">
-                                <input type="text" name="variations[<?= $index ?>][name]" value="<?= htmlspecialchars($item->variation) ?>" placeholder="Nome da variação (ex: Tamanho M)" class="form-input flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                                <input type="number" name="variations[<?= $index ?>][quantity]" value="<?= $item->quantity ?>" placeholder="Estoque" min="0" class="form-input w-24 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                                <button type="button" onclick="removeVariation(this)" class="px-3 py-3 text-red-600 hover:text-red-800 border border-red-300 hover:border-red-400 rounded-lg transition duration-200">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </button>
+                        <div class="row">
+                            <!-- Seção de Edição -->
+                            <div class="col-lg-6">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Editar Dados</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="post" action="<?= base_url('products/update') ?>">
+                                            <input type="hidden" name="id" value="<?= $product->id ?>">
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Nome do Produto</label>
+                                                <input type="text" name="name" value="<?= $product->name ?>" class="form-control" required>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Preço</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">R$</span>
+                                                    <input type="text" name="price" id="price" value="<?= number_format($product->price, 2, ',', '.') ?>" class="form-control" required>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Estoque por Variação</label>
+                                                <div id="stock-wrapper">
+                                                    <?php foreach ($stock as $item): ?>
+                                                    <div class="row mb-2">
+                                                        <div class="col-md-6">
+                                                            <input type="text" name="stock[<?= $item->id ?>][variation]" value="<?= $item->variation ?>" class="form-control" readonly>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <input type="number" name="stock[<?= $item->id ?>][quantity]" value="<?= $item->quantity ?>" min="0" class="form-control" required>
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <button type="button" onclick="removeStock(this)" class="btn btn-outline-danger btn-sm">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                                <button type="button" onclick="addStock()" class="btn btn-outline-primary btn-sm">
+                                                    <i class="bi bi-plus-circle"></i> Adicionar Variação
+                                                </button>
+                                            </div>
+
+                                            <div class="d-grid">
+                                                <button type="submit" class="btn btn-primary">Atualizar Produto</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <button type="button" onclick="addVariation()" class="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg>
-                        Adicionar Variação
-                    </button>
-                </div>
 
-                <div class="flex gap-4 pt-4">
-                    <button type="submit" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition duration-200">
-                        Atualizar Produto
-                    </button>
-                    <a href="<?= base_url('products') ?>" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 focus:ring-4 focus:ring-gray-200 transition duration-200 text-center">
-                        Cancelar
-                    </a>
-                </div>
-            </form>
+                            <!-- Seção de Compra -->
+                            <div class="col-lg-6">
+                                <div class="card border-success">
+                                    <div class="card-header bg-success text-white">
+                                        <h5 class="mb-0"><i class="bi bi-cart-plus"></i> Comprar Produto</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Variação</label>
+                                            <select id="variation-select" class="form-select">
+                                                <option value="">Selecione uma variação</option>
+                                                <?php foreach ($stock as $item): ?>
+                                                <option value="<?= $item->variation ?>" data-quantity="<?= $item->quantity ?>">
+                                                    <?= $item->variation ?> (Estoque: <?= $item->quantity ?>)
+                                                </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
 
-            <!-- Seção de Compra -->
-            <div class="border-t pt-8">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">Comprar Produto</h2>
-                
-                <div class="bg-gray-50 rounded-lg p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <!-- Seleção de Variação -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Variação</label>
-                            <select id="variation-select" class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option value="">Selecione uma variação</option>
-                                <?php foreach ($stock as $item): ?>
-                                    <option value="<?= htmlspecialchars($item->variation) ?>" data-quantity="<?= $item->quantity ?>">
-                                        <?= htmlspecialchars($item->variation) ?> (Estoque: <?= $item->quantity ?>)
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Quantidade</label>
+                                            <input type="number" id="quantity" min="1" value="1" class="form-control">
+                                            <div class="form-text">Máximo disponível: <span id="max-quantity">-</span></div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Preço Unitário</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">R$</span>
+                                                <input type="text" id="unit-price" value="<?= number_format($product->price, 2, ',', '.') ?>" class="form-control" readonly>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Total</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">R$</span>
+                                                <input type="text" id="total-price" value="<?= number_format($product->price, 2, ',', '.') ?>" class="form-control" readonly>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-grid">
+                                            <button type="button" onclick="addToCart()" class="btn btn-success btn-lg">
+                                                <i class="bi bi-cart-plus"></i> Adicionar ao Carrinho
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
-                        <!-- Quantidade -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Quantidade</label>
-                            <input type="number" id="quantity" min="1" value="1" class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        </div>
-
-                        <!-- Botão Comprar -->
-                        <div class="flex items-end">
-                            <button onclick="addToCart()" class="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 focus:ring-4 focus:ring-green-200 transition duration-200">
-                                Adicionar ao Carrinho
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Informações do Produto -->
-                    <div class="mt-6 p-4 bg-white rounded-lg border">
-                        <h3 class="font-semibold text-gray-800 mb-2"><?= htmlspecialchars($product->name) ?></h3>
-                        <p class="text-2xl font-bold text-green-600">R$ <?= number_format($product->price, 2, ',', '.') ?></p>
-                        <p class="text-sm text-gray-600 mt-1">Preço unitário</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Máscara para o campo de preço
         const priceInput = document.getElementById('price');
@@ -146,32 +164,39 @@
             }
         });
 
-        let variationIndex = <?= count($stock) ?>;
+        // Atualiza quantidade máxima quando variação é selecionada
+        document.getElementById('variation-select').addEventListener('change', function() {
+            const selectedOption = this.selectedOptions[0];
+            const quantityInput = document.getElementById('quantity');
+            const maxQuantitySpan = document.getElementById('max-quantity');
+            
+            if (selectedOption.value) {
+                const availableQuantity = parseInt(selectedOption.dataset.quantity);
+                maxQuantitySpan.textContent = availableQuantity;
+                quantityInput.max = availableQuantity;
+                quantityInput.value = Math.min(quantityInput.value, availableQuantity);
+                updateTotal();
+            } else {
+                maxQuantitySpan.textContent = '-';
+                quantityInput.max = '';
+                quantityInput.value = 1;
+                updateTotal();
+            }
+        });
 
-        function addVariation() {
-            const wrapper = document.getElementById('variations-wrapper');
-            const div = document.createElement('div');
-            div.classList.add('flex', 'gap-3');
-            div.innerHTML = `
-                <input type="text" name="variations[${variationIndex}][name]" placeholder="Nome da variação (ex: Tamanho M)" class="form-input flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                <input type="number" name="variations[${variationIndex}][quantity]" placeholder="Estoque" min="0" class="form-input w-24 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                <button type="button" onclick="removeVariation(this)" class="px-3 py-3 text-red-600 hover:text-red-800 border border-red-300 hover:border-red-400 rounded-lg transition duration-200">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                </button>
-            `;
-            wrapper.appendChild(div);
-            variationIndex++;
-        }
+        // Atualiza total quando quantidade muda
+        document.getElementById('quantity').addEventListener('input', updateTotal);
 
-        function removeVariation(button) {
-            button.parentElement.remove();
+        function updateTotal() {
+            const quantity = parseInt(document.getElementById('quantity').value) || 0;
+            const unitPrice = parseFloat(document.getElementById('unit-price').value.replace(/\./g, '').replace(',', '.')) || 0;
+            const total = quantity * unitPrice;
+            document.getElementById('total-price').value = total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
         }
 
         function addToCart() {
             const variation = document.getElementById('variation-select').value;
-            const quantity = document.getElementById('quantity').value;
+            const quantity = parseInt(document.getElementById('quantity').value);
 
             if (!variation) {
                 alert('Selecione uma variação');
@@ -204,7 +229,6 @@
             .then(data => {
                 if (data.success) {
                     alert('Produto adicionado ao carrinho!');
-                    // Redireciona para o carrinho
                     window.location.href = '<?= base_url('products/cart') ?>';
                 } else {
                     alert(data.message || 'Erro ao adicionar ao carrinho');
@@ -214,6 +238,33 @@
                 console.error('Erro:', error);
                 alert('Erro ao adicionar ao carrinho');
             });
+        }
+
+        let stockIndex = <?= count($stock) ?>;
+
+        function addStock() {
+            const wrapper = document.getElementById('stock-wrapper');
+            const div = document.createElement('div');
+            div.classList.add('row', 'mb-2');
+            div.innerHTML = `
+                <div class="col-md-6">
+                    <input type="text" name="stock[new_${stockIndex}][variation]" placeholder="Nome da variação" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <input type="number" name="stock[new_${stockIndex}][quantity]" placeholder="Estoque" min="0" class="form-control" required>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" onclick="removeStock(this)" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+            wrapper.appendChild(div);
+            stockIndex++;
+        }
+
+        function removeStock(button) {
+            button.closest('.row').remove();
         }
     </script>
 </body>
