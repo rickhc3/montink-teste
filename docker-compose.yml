@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+    app:
+        build: .
+        container_name: ci3_app
+        ports:
+            - "8080:80"
+        volumes:
+            - .:/var/www/html
+        environment:
+            - CI_ENV=development
+            - DB_HOST=db
+            - DB_USERNAME=user
+            - DB_PASSWORD=password
+            - DB_DATABASE=montink
+        depends_on:
+            - db
+
+    db:
+        image: mysql:5.7
+        container_name: ci3_db
+        restart: always
+        environment:
+            MYSQL_DATABASE: montink
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_USER: user
+            MYSQL_PASSWORD: password
+        ports:
+            - "3306:3306"
+        volumes:
+            - db_data:/var/lib/mysql
+            - ./docker/mysql:/docker-entrypoint-initdb.d
+
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: ci3_phpmyadmin
+        environment:
+            PMA_HOST: db
+            PMA_USER: root
+            PMA_PASSWORD: root
+        ports:
+            - "8081:80"
+        depends_on:
+            - db
+
+volumes:
+    db_data:
