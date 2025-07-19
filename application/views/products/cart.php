@@ -127,8 +127,43 @@
         </div>
     </div>
 
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto" id="toast-title">Notificação</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toast-message">
+                Mensagem do toast
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Função para mostrar toast
+        function showToast(title, message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toast-title');
+            const toastMessage = document.getElementById('toast-message');
+            
+            // Define cores baseadas no tipo
+            const colors = {
+                'success': 'text-success',
+                'error': 'text-danger',
+                'warning': 'text-warning',
+                'info': 'text-info'
+            };
+            
+            toastTitle.textContent = title;
+            toastTitle.className = `me-auto ${colors[type] || colors.info}`;
+            toastMessage.textContent = message;
+            
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
+
         // Máscara para CEP
         const cepInput = document.getElementById('cep');
         const cepMask = IMask(cepInput, {
@@ -139,7 +174,7 @@
             const cep = cepInput.value.replace(/\D/g, '');
             
             if (cep.length !== 8) {
-                alert('Digite um CEP válido');
+                showToast('Erro', 'Digite um CEP válido', 'error');
                 return;
             }
 
@@ -148,7 +183,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.erro) {
-                        alert('CEP não encontrado');
+                        showToast('Erro', 'CEP não encontrado', 'error');
                         return;
                     }
 
@@ -175,10 +210,12 @@
                         shippingCost === 0 ? 'Grátis' : `R$ ${shippingCost.toFixed(2).replace('.', ',')}`;
                     document.getElementById('total-cost').textContent = 
                         `R$ ${total.toFixed(2).replace('.', ',')}`;
+                    
+                    showToast('Sucesso', 'Frete calculado com sucesso!', 'success');
                 })
                 .catch(error => {
                     console.error('Erro:', error);
-                    alert('Erro ao calcular frete');
+                    showToast('Erro', 'Erro ao calcular frete', 'error');
                 });
         }
 

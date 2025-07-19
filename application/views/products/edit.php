@@ -21,110 +21,58 @@
                             </a>
                         </div>
 
-                        <div class="row">
-                            <!-- Seção de Edição -->
-                            <div class="col-lg-6">
-                                <div class="card border-primary">
-                                    <div class="card-header bg-primary text-white">
-                                        <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Editar Dados</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <form method="post" action="<?= base_url('products/update') ?>">
-                                            <input type="hidden" name="id" value="<?= $product->id ?>">
-                                            
-                                            <div class="mb-3">
-                                                <label class="form-label fw-bold">Nome do Produto</label>
-                                                <input type="text" name="name" value="<?= $product->name ?>" class="form-control" required>
-                                            </div>
-
-                                            <div class="mb-3">
-                                                <label class="form-label fw-bold">Preço</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text">R$</span>
-                                                    <input type="text" name="price" id="price" value="<?= number_format($product->price, 2, ',', '.') ?>" class="form-control" required>
-                                                </div>
-                                            </div>
-
-                                            <div class="mb-3">
-                                                <label class="form-label fw-bold">Estoque por Variação</label>
-                                                <div id="stock-wrapper">
-                                                    <?php foreach ($stock as $item): ?>
-                                                    <div class="row mb-2">
-                                                        <div class="col-md-6">
-                                                            <input type="text" name="stock[<?= $item->id ?>][variation]" value="<?= $item->variation ?>" class="form-control" readonly>
-                                                        </div>
-                                                        <div class="col-md-4">
-                                                            <input type="number" name="stock[<?= $item->id ?>][quantity]" value="<?= $item->quantity ?>" min="0" class="form-control" required>
-                                                        </div>
-                                                        <div class="col-md-2">
-                                                            <button type="button" onclick="removeStock(this)" class="btn btn-outline-danger btn-sm">
-                                                                <i class="bi bi-trash"></i>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <?php endforeach; ?>
-                                                </div>
-                                                <button type="button" onclick="addStock()" class="btn btn-outline-primary btn-sm">
-                                                    <i class="bi bi-plus-circle"></i> Adicionar Variação
-                                                </button>
-                                            </div>
-
-                                            <div class="d-grid">
-                                                <button type="submit" class="btn btn-primary">Atualizar Produto</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
+                        <div class="card border-primary">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Editar Dados do Produto</h5>
                             </div>
-
-                            <!-- Seção de Compra -->
-                            <div class="col-lg-6">
-                                <div class="card border-success">
-                                    <div class="card-header bg-success text-white">
-                                        <h5 class="mb-0"><i class="bi bi-cart-plus"></i> Comprar Produto</h5>
+                            <div class="card-body">
+                                <form method="post" action="<?= base_url('products/update') ?>">
+                                    <input type="hidden" name="id" value="<?= $product->id ?>">
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Nome do Produto</label>
+                                        <input type="text" name="name" value="<?= $product->name ?>" class="form-control" required>
                                     </div>
-                                    <div class="card-body">
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold">Variação</label>
-                                            <select id="variation-select" class="form-select">
-                                                <option value="">Selecione uma variação</option>
-                                                <?php foreach ($stock as $item): ?>
-                                                <option value="<?= $item->variation ?>" data-quantity="<?= $item->quantity ?>">
-                                                    <?= $item->variation ?> (Estoque: <?= $item->quantity ?>)
-                                                </option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                        </div>
 
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold">Quantidade</label>
-                                            <input type="number" id="quantity" min="1" value="1" class="form-control">
-                                            <div class="form-text">Máximo disponível: <span id="max-quantity">-</span></div>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold">Preço Unitário</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text">R$</span>
-                                                <input type="text" id="unit-price" value="<?= number_format($product->price, 2, ',', '.') ?>" class="form-control" readonly>
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold">Total</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text">R$</span>
-                                                <input type="text" id="total-price" value="<?= number_format($product->price, 2, ',', '.') ?>" class="form-control" readonly>
-                                            </div>
-                                        </div>
-
-                                        <div class="d-grid">
-                                            <button type="button" onclick="addToCart()" class="btn btn-success btn-lg">
-                                                <i class="bi bi-cart-plus"></i> Adicionar ao Carrinho
-                                            </button>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Preço</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">R$</span>
+                                            <input type="text" name="price" id="price" value="<?= number_format($product->price, 2, ',', '.') ?>" class="form-control" required>
                                         </div>
                                     </div>
-                                </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Estoque por Variação</label>
+                                        <div id="stock-wrapper">
+                                            <?php foreach ($stock as $item): ?>
+                                            <div class="row mb-2">
+                                                <div class="col-md-6">
+                                                    <input type="text" name="stock[<?= $item->id ?>][variation]" value="<?= $item->variation ?>" class="form-control" readonly>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <input type="number" name="stock[<?= $item->id ?>][quantity]" value="<?= $item->quantity ?>" min="0" class="form-control" required>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <button type="button" onclick="removeStock(this)" class="btn btn-outline-danger btn-sm">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <button type="button" onclick="addStock()" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-plus-circle"></i> Adicionar Variação
+                                        </button>
+                                    </div>
+
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                        <a href="<?= base_url() ?>" class="btn btn-secondary">Cancelar</a>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-check-circle"></i> Atualizar Produto
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -164,81 +112,7 @@
             }
         });
 
-        // Atualiza quantidade máxima quando variação é selecionada
-        document.getElementById('variation-select').addEventListener('change', function() {
-            const selectedOption = this.selectedOptions[0];
-            const quantityInput = document.getElementById('quantity');
-            const maxQuantitySpan = document.getElementById('max-quantity');
-            
-            if (selectedOption.value) {
-                const availableQuantity = parseInt(selectedOption.dataset.quantity);
-                maxQuantitySpan.textContent = availableQuantity;
-                quantityInput.max = availableQuantity;
-                quantityInput.value = Math.min(quantityInput.value, availableQuantity);
-                updateTotal();
-            } else {
-                maxQuantitySpan.textContent = '-';
-                quantityInput.max = '';
-                quantityInput.value = 1;
-                updateTotal();
-            }
-        });
 
-        // Atualiza total quando quantidade muda
-        document.getElementById('quantity').addEventListener('input', updateTotal);
-
-        function updateTotal() {
-            const quantity = parseInt(document.getElementById('quantity').value) || 0;
-            const unitPrice = parseFloat(document.getElementById('unit-price').value.replace(/\./g, '').replace(',', '.')) || 0;
-            const total = quantity * unitPrice;
-            document.getElementById('total-price').value = total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-        }
-
-        function addToCart() {
-            const variation = document.getElementById('variation-select').value;
-            const quantity = parseInt(document.getElementById('quantity').value);
-
-            if (!variation) {
-                alert('Selecione uma variação');
-                return;
-            }
-
-            if (!quantity || quantity < 1) {
-                alert('Digite uma quantidade válida');
-                return;
-            }
-
-            // Verifica estoque
-            const selectedOption = document.getElementById('variation-select').selectedOptions[0];
-            const availableQuantity = parseInt(selectedOption.dataset.quantity);
-
-            if (quantity > availableQuantity) {
-                alert(`Estoque insuficiente. Disponível: ${availableQuantity}`);
-                return;
-            }
-
-            // Adiciona ao carrinho via AJAX
-            fetch('<?= base_url('products/add_to_cart') ?>', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `product_id=<?= $product->id ?>&variation=${encodeURIComponent(variation)}&quantity=${quantity}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Produto adicionado ao carrinho!');
-                    window.location.href = '<?= base_url('products/cart') ?>';
-                } else {
-                    alert(data.message || 'Erro ao adicionar ao carrinho');
-                }
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-                alert('Erro ao adicionar ao carrinho');
-            });
-        }
 
         let stockIndex = <?= count($stock) ?>;
 

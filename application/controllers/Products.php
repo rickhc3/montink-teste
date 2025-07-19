@@ -167,8 +167,11 @@ class Products extends CI_Controller {
         $this->load->view('products/cart', $data);
     }
 
-    public function remove_from_cart() {
-        $item_key = $this->input->post('item_key');
+    public function remove_from_cart($item_key = null) {
+        if (!$item_key) {
+            redirect('products/cart');
+        }
+        
         $cart = $this->session->userdata('cart') ?: [];
         
         if (isset($cart[$item_key])) {
@@ -176,6 +179,11 @@ class Products extends CI_Controller {
             $this->session->set_userdata('cart', $cart);
         }
 
+        redirect('products/cart');
+    }
+
+    public function clear_cart() {
+        $this->session->unset_userdata('cart');
         redirect('products/cart');
     }
 
@@ -269,6 +277,22 @@ class Products extends CI_Controller {
             $this->output->set_content_type('application/json')
                          ->set_output(json_encode(['success' => false, 'message' => 'Erro ao processar pedido: ' . $e->getMessage()]));
         }
+    }
+
+    public function get_stock($product_id = null) {
+        if (!$product_id) {
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode(['success' => false, 'message' => 'ID do produto é obrigatório']));
+            return;
+        }
+
+        $stock = $this->db->where('product_id', $product_id)->get('stock')->result();
+        
+        $this->output->set_content_type('application/json')
+                     ->set_output(json_encode([
+                         'success' => true,
+                         'stock' => $stock
+                     ]));
     }
 
     public function calculate_shipping() {
