@@ -22,6 +22,26 @@ class Products extends CI_Controller {
         $this->load->view('products/index', $data);
     }
 
+    public function get_products() {
+        // Busca todos os produtos
+        $products = $this->db->order_by('created_at', 'DESC')->get('products')->result();
+        
+        // Para cada produto, busca o estoque
+        foreach ($products as $product) {
+            $product->stock = $this->db->where('product_id', $product->id)->get('stock')->result();
+        }
+        
+        $this->output->set_content_type('application/json')
+                     ->set_output(json_encode([
+                         'success' => true,
+                         'products' => $products
+                     ]));
+    }
+
+    public function test() {
+        $this->load->view('products/test');
+    }
+
     public function create() {
         $this->load->view('products/create');
     }
