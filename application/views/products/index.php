@@ -6,6 +6,7 @@
     <title>Produtos - Montink</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://unpkg.com/imask"></script>
 </head>
 <body class="bg-light">
     <div class="container py-5">
@@ -19,9 +20,9 @@
                                 <a href="<?= base_url('products/cart') ?>" class="btn btn-outline-primary">
                                     <i class="bi bi-cart3"></i> Carrinho
                                 </a>
-                                <a href="<?= base_url('products/create') ?>" class="btn btn-primary">
+                                <button type="button" class="btn btn-primary" onclick="openCreateModal()">
                                     <i class="bi bi-plus-circle"></i> Novo Produto
-                                </a>
+                                </button>
                             </div>
                         </div>
 
@@ -30,9 +31,9 @@
                                 <i class="bi bi-box h1 text-muted"></i>
                                 <h3 class="mt-3">Nenhum produto cadastrado</h3>
                                 <p class="text-muted">Comece criando seu primeiro produto!</p>
-                                <a href="<?= base_url('products/create') ?>" class="btn btn-primary">
+                                <button type="button" class="btn btn-primary" onclick="openCreateModal()">
                                     <i class="bi bi-plus-circle"></i> Criar Produto
-                                </a>
+                                </button>
                             </div>
                         <?php else: ?>
                             <div class="table-responsive">
@@ -75,11 +76,12 @@
                                                 </td>
                                                 <td>
                                                     <div class="btn-group" role="group">
-                                                        <a href="<?= base_url('products/edit/' . $product->id) ?>" 
-                                                           class="btn btn-outline-primary btn-sm" 
-                                                           title="Editar">
+                                                        <button type="button" 
+                                                                class="btn btn-outline-primary btn-sm" 
+                                                                onclick="openEditModal(<?= $product->id ?>, '<?= htmlspecialchars($product->name) ?>', <?= $product->price ?>)"
+                                                                title="Editar">
                                                             <i class="bi bi-pencil-square"></i>
-                                                        </a>
+                                                        </button>
                                                         <button type="button" 
                                                                 class="btn btn-outline-success btn-sm" 
                                                                 onclick="openBuyModal(<?= $product->id ?>, '<?= htmlspecialchars($product->name) ?>', <?= $product->price ?>)"
@@ -106,22 +108,20 @@
         </div>
     </div>
 
-    </div>
-
-    <!-- Toast Container -->
-    <div class="toast-container position-fixed top-0 end-0 p-3">
+    <!-- Toast para notificações -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">
-                <strong class="me-auto" id="toast-title">Notificação</strong>
+                <strong id="toast-title" class="me-auto">Notificação</strong>
                 <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
             <div class="toast-body" id="toast-message">
-                Mensagem do toast
+                Mensagem aqui
             </div>
         </div>
     </div>
 
-    <!-- Modal de Compra -->
+    <!-- Modal para Comprar -->
     <div class="modal fade" id="buyModal" tabindex="-1" aria-labelledby="buyModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -174,10 +174,115 @@
         </div>
     </div>
 
+    <!-- Modal para Criar Produto -->
+    <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createModalLabel">Criar Novo Produto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="createProductForm" method="post" action="<?= base_url('products/store') ?>">
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Nome do Produto</label>
+                                <input type="text" name="name" class="form-control" placeholder="Digite o nome do produto" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Preço</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="text" name="price" id="create-price" class="form-control" placeholder="0,00" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Variações</label>
+                            <div id="create-variations-wrapper">
+                                <div class="row mb-2">
+                                    <div class="col-md-8">
+                                        <input type="text" name="variations[0][name]" placeholder="Nome da variação (ex: Tamanho M)" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="number" name="variations[0][quantity]" placeholder="Estoque" min="0" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <button type="button" onclick="removeCreateVariation(this)" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" onclick="addCreateVariation()" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-plus-circle"></i> Adicionar Variação
+                            </button>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Salvar Produto
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Produto -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Editar Produto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editProductForm" method="post" action="<?= base_url('products/update') ?>">
+                    <input type="hidden" name="id" id="edit-product-id">
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Nome do Produto</label>
+                                <input type="text" name="name" id="edit-product-name" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Preço</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="text" name="price" id="edit-price" class="form-control" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Estoque por Variação</label>
+                            <div id="edit-stock-wrapper">
+                                <!-- Variações serão carregadas dinamicamente -->
+                            </div>
+                            <button type="button" onclick="addEditStock()" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-plus-circle"></i> Adicionar Variação
+                            </button>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Atualizar Produto
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let currentProductId = null;
         let currentProductPrice = 0;
+        let createVariationIndex = 1;
+        let editStockIndex = 0;
 
         // Função para mostrar toast
         function showToast(title, message, type = 'info') {
@@ -206,6 +311,247 @@
                 window.location.href = '<?= base_url('products/delete/') ?>' + id;
             }
         }
+
+        // Função para abrir modal de criação
+        function openCreateModal() {
+            // Limpa o formulário
+            document.getElementById('createProductForm').reset();
+            document.getElementById('create-variations-wrapper').innerHTML = `
+                <div class="row mb-2">
+                    <div class="col-md-8">
+                        <input type="text" name="variations[0][name]" placeholder="Nome da variação (ex: Tamanho M)" class="form-control" required>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" name="variations[0][quantity]" placeholder="Estoque" min="0" class="form-control" required>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" onclick="removeCreateVariation(this)" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            createVariationIndex = 1;
+            
+            const modal = new bootstrap.Modal(document.getElementById('createModal'));
+            modal.show();
+            
+            // Aplica máscara no campo de preço após o modal estar visível
+            setTimeout(() => {
+                const priceInput = document.getElementById('create-price');
+                if (priceInput) {
+                    IMask(priceInput, {
+                        mask: Number,
+                        scale: 2,
+                        thousandsSeparator: '.',
+                        radix: ',',
+                        mapToRadix: ['.'],
+                        normalizeZeros: true,
+                        padFractionalZeros: false,
+                        min: 0,
+                        max: 999999.99,
+                        parser: function (str) {
+                            return str.replace(/\D/g, '');
+                        },
+                        formatter: function (str) {
+                            return str.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                        }
+                    });
+                }
+            }, 100);
+        }
+
+        // Função para abrir modal de edição
+        function openEditModal(productId, productName, productPrice) {
+            currentProductId = productId;
+            
+            // Preenche dados básicos
+            document.getElementById('edit-product-id').value = productId;
+            document.getElementById('edit-product-name').value = productName;
+            document.getElementById('edit-price').value = productPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            
+            // Carrega estoque do produto
+            fetch(`<?= base_url('products/get_stock/') ?>${productId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const wrapper = document.getElementById('edit-stock-wrapper');
+                        wrapper.innerHTML = '';
+                        editStockIndex = 0;
+                        
+                        data.stock.forEach(item => {
+                            addEditStockItem(item.variation, item.quantity, item.id);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar estoque:', error);
+                });
+            
+            const modal = new bootstrap.Modal(document.getElementById('editModal'));
+            modal.show();
+            
+            // Aplica máscara no campo de preço após o modal estar visível
+            setTimeout(() => {
+                const priceInput = document.getElementById('edit-price');
+                if (priceInput) {
+                    IMask(priceInput, {
+                        mask: Number,
+                        scale: 2,
+                        thousandsSeparator: '.',
+                        radix: ',',
+                        mapToRadix: ['.'],
+                        normalizeZeros: true,
+                        padFractionalZeros: false,
+                        min: 0,
+                        max: 999999.99,
+                        parser: function (str) {
+                            return str.replace(/\D/g, '');
+                        },
+                        formatter: function (str) {
+                            return str.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                        }
+                    });
+                }
+            }, 100);
+        }
+
+        // Funções para o modal de criação
+        function addCreateVariation() {
+            const wrapper = document.getElementById('create-variations-wrapper');
+            const div = document.createElement('div');
+            div.classList.add('row', 'mb-2');
+            div.innerHTML = `
+                <div class="col-md-8">
+                    <input type="text" name="variations[${createVariationIndex}][name]" placeholder="Nome da variação (ex: Tamanho M)" class="form-control" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="number" name="variations[${createVariationIndex}][quantity]" placeholder="Estoque" min="0" class="form-control" required>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" onclick="removeCreateVariation(this)" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+            wrapper.appendChild(div);
+            createVariationIndex++;
+        }
+
+        function removeCreateVariation(button) {
+            button.closest('.row').remove();
+        }
+
+        // Funções para o modal de edição
+        function addEditStock() {
+            addEditStockItem('', 0, 'new_' + editStockIndex);
+        }
+
+        function addEditStockItem(variation, quantity, stockId) {
+            const wrapper = document.getElementById('edit-stock-wrapper');
+            const div = document.createElement('div');
+            div.classList.add('row', 'mb-2');
+            div.innerHTML = `
+                <div class="col-md-6">
+                    <input type="text" name="stock[${stockId}][variation]" value="${variation}" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <input type="number" name="stock[${stockId}][quantity]" value="${quantity}" min="0" class="form-control" required>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" onclick="removeEditStock(this)" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+            wrapper.appendChild(div);
+            editStockIndex++;
+        }
+
+        function removeEditStock(button) {
+            button.closest('.row').remove();
+        }
+
+        // Processamento dos formulários
+        document.getElementById('createProductForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Converte preço para formato adequado
+            const priceInput = document.getElementById('create-price');
+            const priceValue = priceInput.value;
+            if (priceValue) {
+                const numericValue = priceValue.replace(/\./g, '').replace(',', '.');
+                priceInput.value = numericValue;
+            }
+            
+            // Envia formulário via AJAX
+            const formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Sucesso', data.message, 'success');
+                    // Fecha o modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('createModal'));
+                    modal.hide();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast('Erro', data.message || 'Erro ao criar produto', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showToast('Erro', 'Erro ao criar produto', 'error');
+            });
+        });
+
+        document.getElementById('editProductForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Converte preço para formato adequado
+            const priceInput = document.getElementById('edit-price');
+            const priceValue = priceInput.value;
+            if (priceValue) {
+                const numericValue = priceValue.replace(/\./g, '').replace(',', '.');
+                priceInput.value = numericValue;
+            }
+            
+            // Envia formulário via AJAX
+            const formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Sucesso', data.message, 'success');
+                    // Fecha o modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
+                    modal.hide();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast('Erro', data.message || 'Erro ao atualizar produto', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showToast('Erro', 'Erro ao atualizar produto', 'error');
+            });
+        });
 
         function openBuyModal(productId, productName, productPrice) {
             currentProductId = productId;

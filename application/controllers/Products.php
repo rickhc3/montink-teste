@@ -41,53 +41,62 @@ class Products extends CI_Controller {
         $this->load->view('products/edit', $data);
     }
 
-    public function update($id = null) {
+    public function update() {
+        $id = $this->input->post('id');
         if (!$id) {
-            redirect('products');
+            if ($this->input->get_request_header('X-Requested-With') === 'XMLHttpRequest') {
+                $this->output->set_content_type('application/json')
+                             ->set_output(json_encode(['success' => false, 'message' => 'ID do produto é obrigatório']));
+            } else {
+                redirect('products');
+            }
+            return;
         }
 
         $name = $this->input->post('name');
         $price = $this->input->post('price');
         $stock_data = $this->input->post('stock');
 
-        // Log para debug
-        error_log("Update Product ID: " . $id);
-        error_log("Name: " . $name);
-        error_log("Price: " . $price);
-        error_log("Stock Data: " . print_r($stock_data, true));
+        try {
+            // Atualiza o produto
+            $this->db->where('id', $id)->update('products', [
+                'name' => $name,
+                'price' => $price
+            ]);
 
-        // Atualiza o produto
-        $this->db->where('id', $id)->update('products', [
-            'name' => $name,
-            'price' => $price
-        ]);
+            // Remove estoque antigo
+            $this->db->where('product_id', $id)->delete('stock');
 
-        // Remove estoque antigo
-        $this->db->where('product_id', $id)->delete('stock');
-
-        // Adiciona novo estoque
-        if ($stock_data) {
-            foreach ($stock_data as $stock_item) {
-                if (!empty($stock_item['variation']) && isset($stock_item['quantity'])) {
-                    $insert_data = [
-                        'product_id' => $id,
-                        'variation' => $stock_item['variation'],
-                        'quantity' => (int)$stock_item['quantity']
-                    ];
-                    
-                    error_log("Inserting stock: " . print_r($insert_data, true));
-                    $this->db->insert('stock', $insert_data);
-                    
-                    if ($this->db->affected_rows() > 0) {
-                        error_log("Stock inserted successfully");
-                    } else {
-                        error_log("Error inserting stock: " . $this->db->error()['message']);
+            // Adiciona novo estoque
+            if ($stock_data) {
+                foreach ($stock_data as $stock_item) {
+                    if (!empty($stock_item['variation']) && isset($stock_item['quantity'])) {
+                        $insert_data = [
+                            'product_id' => $id,
+                            'variation' => $stock_item['variation'],
+                            'quantity' => (int)$stock_item['quantity']
+                        ];
+                        
+                        $this->db->insert('stock', $insert_data);
                     }
                 }
             }
-        }
 
-        redirect('products');
+            // Verifica se é uma requisição AJAX
+            if ($this->input->get_request_header('X-Requested-With') === 'XMLHttpRequest') {
+                $this->output->set_content_type('application/json')
+                             ->set_output(json_encode(['success' => true, 'message' => 'Produto atualizado com sucesso']));
+            } else {
+                redirect('products');
+            }
+        } catch (Exception $e) {
+            if ($this->input->get_request_header('X-Requested-With') === 'XMLHttpRequest') {
+                $this->output->set_content_type('application/json')
+                             ->set_output(json_encode(['success' => false, 'message' => 'Erro ao atualizar produto: ' . $e->getMessage()]));
+            } else {
+                redirect('products');
+            }
+        }
     }
 
     public function store() {
@@ -95,23 +104,38 @@ class Products extends CI_Controller {
         $price = $this->input->post('price');
         $variations = $this->input->post('variations');
 
-        $this->db->insert('products', [
-            'name' => $name,
-            'price' => $price,
-            'created_at' => date('Y-m-d H:i:s')
-        ]);
-
-        $product_id = $this->db->insert_id();
-
-        foreach ($variations as $v) {
-            $this->db->insert('stock', [
-                'product_id' => $product_id,
-                'variation' => $v['name'],
-                'quantity' => $v['quantity']
+        try {
+            $this->db->insert('products', [
+                'name' => $name,
+                'price' => $price,
+                'created_at' => date('Y-m-d H:i:s')
             ]);
-        }
 
-        redirect('products');
+            $product_id = $this->db->insert_id();
+
+            foreach ($variations as $v) {
+                $this->db->insert('stock', [
+                    'product_id' => $product_id,
+                    'variation' => $v['name'],
+                    'quantity' => $v['quantity']
+                ]);
+            }
+
+            // Verifica se é uma requisição AJAX
+            if ($this->input->get_request_header('X-Requested-With') === 'XMLHttpRequest') {
+                $this->output->set_content_type('application/json')
+                             ->set_output(json_encode(['success' => true, 'message' => 'Produto criado com sucesso']));
+            } else {
+                redirect('products');
+            }
+        } catch (Exception $e) {
+            if ($this->input->get_request_header('X-Requested-With') === 'XMLHttpRequest') {
+                $this->output->set_content_type('application/json')
+                             ->set_output(json_encode(['success' => false, 'message' => 'Erro ao criar produto: ' . $e->getMessage()]));
+            } else {
+                redirect('products');
+            }
+        }
     }
 
     public function add_to_cart() {
@@ -312,6 +336,20 @@ class Products extends CI_Controller {
                          'success' => true,
                          'stock' => $stock
                      ]));
+    }
+
+    public function delete($id = null) {
+        if (!$id) {
+            redirect('products');
+        }
+
+        // Remove o estoque primeiro (chave estrangeira)
+        $this->db->where('product_id', $id)->delete('stock');
+        
+        // Remove o produto
+        $this->db->where('id', $id)->delete('products');
+
+        redirect('products');
     }
 
     public function calculate_shipping() {
