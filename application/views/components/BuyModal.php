@@ -49,13 +49,13 @@ const BuyModal = {
                             </select>
                         </div>
 
-                        <div class="mb-3">
+                        <div v-if="selectedVariation" class="mb-3">
                             <label class="form-label">Quantidade</label>
                             <input type="number" v-model="quantity" min="1" :max="maxQuantity" class="form-control">
                             <div class="form-text">Máximo: {{ maxQuantity }}</div>
                         </div>
 
-                        <div class="mb-3">
+                        <div v-if="selectedVariation" class="mb-3">
                             <label class="form-label">Preço Unitário</label>
                             <div class="input-group">
                                 <span class="input-group-text">R$</span>
@@ -63,7 +63,7 @@ const BuyModal = {
                             </div>
                         </div>
 
-                        <div class="mb-3">
+                        <div v-if="selectedVariation" class="mb-3">
                             <label class="form-label">Total</label>
                             <div class="input-group">
                                 <span class="input-group-text">R$</span>
@@ -153,4 +153,4 @@ const BuyModal = {
         }
     }
 };
-</script> 
+</script>

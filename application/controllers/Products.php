@@ -6,7 +6,9 @@ class Products extends CI_Controller {
     public function __construct() {
         parent::__construct();
         $this->load->database();
-        $this->load->library('session');
+        $this->load->library(['session', 'email']);
+        $this->load->model(['Coupon_model', 'Order_model']);
+        $this->load->helper(['url', 'form']);
     }
     
     /**
@@ -312,6 +314,7 @@ class Products extends CI_Controller {
     }
 
     public function finalize_order() {
+        $input = $this->get_request_data();
         $cart = $this->session->userdata('cart') ?: [];
         
         if (empty($cart)) {
@@ -320,18 +323,23 @@ class Products extends CI_Controller {
             return;
         }
 
-        // Dados do pedido
-        $order_data = [
-            'total' => 0,
-            'status' => 'pending',
-            'created_at' => date('Y-m-d H:i:s')
-        ];
+        // Validar dados do cliente
+        $required_fields = ['customer_name', 'customer_email', 'shipping_address', 'shipping_city', 'shipping_state', 'shipping_zipcode'];
+        foreach ($required_fields as $field) {
+            if (empty($input[$field])) {
+                $this->output->set_content_type('application/json')
+                             ->set_output(json_encode(['success' => false, 'message' => 'Todos os campos são obrigatórios']));
+                return;
+            }
+        }
 
-        // Calcula total e verifica estoque novamente
+        // Calcular subtotal
+        $subtotal = 0;
+        $cart_items = [];
         foreach ($cart as $item) {
-            $order_data['total'] += $item['price'] * $item['quantity'];
+            $subtotal += $item['price'] * $item['quantity'];
             
-            // Verifica se ainda há estoque suficiente
+            // Verificar estoque
             $stock = $this->db->where('product_id', $item['product_id'])
                               ->where('variation', $item['variation'])
                               ->get('stock')->row();
@@ -344,57 +352,138 @@ class Products extends CI_Controller {
                              ]));
                 return;
             }
+
+            $cart_items[] = [
+                'product_id' => $item['product_id'],
+                'product_name' => $item['name'],
+                'variation' => $item['variation'],
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['price']
+            ];
         }
 
-        // Inicia transação
-        $this->db->trans_start();
-
-        try {
-            // Insere o pedido
-            $this->db->insert('orders', $order_data);
-            $order_id = $this->db->insert_id();
-
-            // Atualiza estoque e insere itens do pedido
-            foreach ($cart as $item) {
-                // Diminui o estoque
-                $this->db->where('product_id', $item['product_id'])
-                         ->where('variation', $item['variation'])
-                         ->set('quantity', 'quantity - ' . $item['quantity'], false)
-                         ->update('stock');
-                
-                // Insere item do pedido (se tivesse tabela order_items)
-                // $this->db->insert('order_items', [
-                //     'order_id' => $order_id,
-                //     'product_id' => $item['product_id'],
-                //     'variation' => $item['variation'],
-                //     'quantity' => $item['quantity'],
-                //     'price' => $item['price']
-                // ]);
-            }
-
-            $this->db->trans_complete();
-
-            if ($this->db->trans_status() === FALSE) {
-                $this->db->trans_rollback();
+        // Validar e aplicar cupom se fornecido
+        $discount_amount = 0;
+        $coupon_code = null;
+        if (!empty($input['coupon_code'])) {
+            $coupon_validation = $this->Coupon_model->validate_coupon($input['coupon_code'], $subtotal);
+            if ($coupon_validation['valid']) {
+                $discount_amount = $this->Coupon_model->calculate_discount($coupon_validation['coupon'], $subtotal);
+                $coupon_code = $input['coupon_code'];
+            } else {
                 $this->output->set_content_type('application/json')
-                             ->set_output(json_encode(['success' => false, 'message' => 'Erro ao processar pedido']));
+                             ->set_output(json_encode(['success' => false, 'message' => $coupon_validation['message']]));
                 return;
             }
+        }
 
-            // Limpa o carrinho
+        // Calcular frete
+        $shipping_cost = $this->calculate_shipping_cost($subtotal);
+        $total = $subtotal + $shipping_cost - $discount_amount;
+
+        // Dados do pedido
+        $order_data = [
+            'customer_name' => $input['customer_name'],
+            'customer_email' => $input['customer_email'],
+            'customer_phone' => $input['customer_phone'] ?? null,
+            'shipping_address' => $input['shipping_address'],
+            'shipping_city' => $input['shipping_city'],
+            'shipping_state' => $input['shipping_state'],
+            'shipping_zipcode' => $input['shipping_zipcode'],
+            'subtotal' => $subtotal,
+            'shipping_cost' => $shipping_cost,
+            'discount_amount' => $discount_amount,
+            'total' => $total,
+            'coupon_code' => $coupon_code
+        ];
+
+        // Criar pedido
+        $result = $this->Order_model->create_order($order_data, $cart_items);
+        
+        if ($result['success']) {
+            // Enviar e-mail de confirmação
+            $this->send_order_confirmation_email($result['order_id'], $order_data, $cart_items);
+            
+            // Limpar carrinho
             $this->session->unset_userdata('cart');
-
+            
             $this->output->set_content_type('application/json')
                          ->set_output(json_encode([
                              'success' => true, 
                              'message' => 'Pedido finalizado com sucesso!',
-                             'order_id' => $order_id
+                             'order_id' => $result['order_id']
                          ]));
-
-        } catch (Exception $e) {
-            $this->db->trans_rollback();
+        } else {
             $this->output->set_content_type('application/json')
-                         ->set_output(json_encode(['success' => false, 'message' => 'Erro ao processar pedido: ' . $e->getMessage()]));
+                         ->set_output(json_encode(['success' => false, 'message' => $result['message']]));
+        }
+    }
+
+    /**
+     * Calcular custo do frete
+     */
+    private function calculate_shipping_cost($subtotal) {
+        if ($subtotal >= 200.00) {
+            return 0.00; // Frete grátis
+        } elseif ($subtotal >= 52.00 && $subtotal <= 166.59) {
+            return 15.00;
+        } else {
+            return 20.00;
+        }
+    }
+
+    /**
+     * Enviar e-mail de confirmação do pedido
+     */
+    private function send_order_confirmation_email($order_id, $order_data, $cart_items) {
+        try {
+            $message = $this->load->view('emails/order_confirmation', [
+                'order_id' => $order_id,
+                'order' => (object)$order_data,
+                'items' => $cart_items
+            ], true);
+
+            $this->email->clear();
+            $this->email->from('noreply@montink.com', 'Montink');
+            $this->email->to($order_data['customer_email']);
+            $this->email->subject('Confirmação do Pedido #' . $order_id);
+            $this->email->message($message);
+            
+            if (!$this->email->send()) {
+                log_message('error', 'Falha ao enviar email de confirmação do pedido: ' . $this->email->print_debugger());
+            }
+        } catch (Exception $e) {
+            log_message('error', 'Erro de email: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Validar cupom via AJAX
+     */
+    public function validate_coupon() {
+        $code = $this->input->post('code');
+        $subtotal = $this->input->post('subtotal');
+
+        if (!$code || !$subtotal) {
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode(['valid' => false, 'message' => 'Dados inválidos']));
+            return;
+        }
+
+        $result = $this->Coupon_model->validate_coupon($code, $subtotal);
+        
+        if ($result['valid']) {
+            $discount = $this->Coupon_model->calculate_discount($result['coupon'], $subtotal);
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode([
+                             'valid' => true,
+                             'discount' => $discount,
+                             'discount_formatted' => 'R$ ' . number_format($discount, 2, ',', '.'),
+                             'coupon' => $result['coupon']
+                         ]));
+        } else {
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode($result));
         }
     }
 

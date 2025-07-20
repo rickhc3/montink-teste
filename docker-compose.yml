@@ -21,6 +21,7 @@ services:
         image: mysql:5.7
         container_name: ci3_db
         restart: always
+        command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
         environment:
             MYSQL_DATABASE: montink
             MYSQL_ROOT_PASSWORD: root

@@ -154,18 +154,45 @@
 
                                         <hr>
 
+                                        <!-- Cupom de Desconto -->
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold"><i class="bi bi-tag"></i> Cupom de Desconto</label>
+                                            <div class="input-group">
+                                                <input type="text" id="coupon_code" class="form-control" placeholder="Digite o código" style="text-transform: uppercase;">
+                                                <button type="button" id="apply-coupon" class="btn btn-outline-primary">
+                                                    <i class="bi bi-check"></i> Aplicar
+                                                </button>
+                                            </div>
+                                            <div id="coupon-error" class="text-danger small mt-1" style="display: none;"></div>
+                                            <div id="coupon-success" class="alert alert-success mt-2" style="display: none;">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <strong id="applied-coupon-code"></strong><br>
+                                                        <small id="applied-coupon-discount"></small>
+                                                    </div>
+                                                    <button type="button" id="remove-coupon" class="btn btn-sm btn-outline-danger">
+                                                        <i class="bi bi-x"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div class="d-flex justify-content-between mb-2">
                                             <span>Subtotal:</span>
-                                            <strong>R$ <?= number_format($subtotal, 2, ',', '.') ?></strong>
+                                            <strong id="subtotal-amount">R$ <?= number_format($subtotal, 2, ',', '.') ?></strong>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2" id="coupon-discount-line" style="display: none;">
+                                            <span>Desconto:</span>
+                                            <strong class="text-success" id="coupon-discount-amount">- R$ 0,00</strong>
                                         </div>
                                         <div class="d-flex justify-content-between mb-2">
                                             <span>Frete:</span>
-                                            <strong id="shipping-cost">R$ 15,00</strong>
+                                            <strong id="shipping-cost">A calcular</strong>
                                         </div>
                                         <hr>
                                         <div class="d-flex justify-content-between mb-3">
                                             <span class="fw-bold">Total:</span>
-                                            <strong class="text-success fs-5" id="total-cost">R$ <?= number_format($subtotal + 15, 2, ',', '.') ?></strong>
+                                            <strong class="text-success fs-5" id="total-cost">R$ <?= number_format($subtotal, 2, ',', '.') ?></strong>
                                         </div>
 
                                         <div class="d-grid">
@@ -198,6 +225,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        let appliedCoupon = null;
+        let subtotal = <?= $subtotal ?>;
+        let shippingCost = 0;
+        let couponDiscount = 0;
+        
         // Função para mostrar toast
         function showToast(title, message, type = 'info') {
             const toast = document.getElementById('toast');
@@ -257,12 +289,35 @@
                     document.getElementById('city').value = data.localidade || '';
                     document.getElementById('state').value = data.uf || '';
                     
+                    calculateShipping(data.uf);
                     showToast('Sucesso', 'Endereço preenchido automaticamente!', 'success');
                 })
                 .catch(error => {
                     console.error('Erro:', error);
                     showToast('Erro', 'Erro ao buscar CEP', 'error');
                 });
+        }
+        
+        function calculateShipping(state) {
+            // Tabela de frete por estado (simulação)
+            const shippingRates = {
+                'SP': 15.00, 'RJ': 18.00, 'MG': 20.00, 'RS': 25.00,
+                'PR': 22.00, 'SC': 24.00, 'GO': 28.00, 'DF': 25.00,
+                'ES': 22.00, 'BA': 30.00, 'PE': 35.00, 'CE': 38.00,
+                'PB': 40.00, 'RN': 40.00, 'AL': 38.00, 'SE': 35.00,
+                'PI': 42.00, 'MA': 45.00, 'TO': 40.00, 'PA': 50.00,
+                'AM': 60.00, 'RR': 65.00, 'AP': 55.00, 'AC': 58.00,
+                'RO': 48.00, 'MT': 35.00, 'MS': 30.00
+            };
+            
+            shippingCost = shippingRates[state] || 25.00;
+            document.getElementById('shipping-cost').textContent = `R$ ${shippingCost.toFixed(2).replace('.', ',')}`;
+            updateTotal();
+        }
+        
+        function updateTotal() {
+            const total = subtotal - couponDiscount + shippingCost;
+            document.getElementById('total-cost').textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
         }
 
         function finalizeOrder() {
@@ -290,12 +345,30 @@
                 return;
             }
 
+            // Prepara dados do formulário
+            const formData = new FormData();
+            formData.append('customer_name', document.getElementById('name').value);
+            formData.append('customer_email', document.getElementById('email').value);
+            formData.append('customer_phone', document.getElementById('phone').value);
+            formData.append('customer_document', document.getElementById('cpf').value);
+            formData.append('cep', document.getElementById('cep').value);
+            formData.append('address', document.getElementById('street').value);
+            formData.append('number', document.getElementById('number').value);
+            formData.append('complement', document.getElementById('complement').value);
+            formData.append('neighborhood', document.getElementById('neighborhood').value);
+            formData.append('city', document.getElementById('city').value);
+            formData.append('state', document.getElementById('state').value);
+            formData.append('shipping_cost', shippingCost);
+            formData.append('coupon_discount', couponDiscount);
+            
+            if (appliedCoupon) {
+                formData.append('applied_coupon_id', appliedCoupon.id);
+            }
+
             // Finaliza o pedido via AJAX
             fetch('<?= base_url('products/finalize_order') ?>', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                }
+                body: formData
             })
             .then(response => response.json())
             .then(data => {
@@ -314,12 +387,79 @@
             });
         }
 
+        function applyCoupon() {
+            const couponCode = document.getElementById('coupon_code').value.trim();
+            
+            if (!couponCode) {
+                showToast('Atenção', 'Digite um código de cupom', 'warning');
+                return;
+            }
+            
+            fetch('<?= base_url('products/validate_coupon') ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `coupon_code=${encodeURIComponent(couponCode)}&subtotal=${subtotal}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    appliedCoupon = data.coupon;
+                    couponDiscount = data.discount;
+                    
+                    document.getElementById('coupon-error').style.display = 'none';
+                    document.getElementById('coupon-success').style.display = 'block';
+                    document.getElementById('applied-coupon-code').textContent = couponCode;
+                    document.getElementById('applied-coupon-discount').textContent = `Desconto: R$ ${couponDiscount.toFixed(2).replace('.', ',')}`;
+                    document.getElementById('coupon-discount-amount').textContent = `- R$ ${couponDiscount.toFixed(2).replace('.', ',')}`;
+                    document.getElementById('coupon-discount-line').style.display = 'flex';
+                    
+                    updateTotal();
+                    showToast('Sucesso', 'Cupom aplicado com sucesso!', 'success');
+                } else {
+                    document.getElementById('coupon-success').style.display = 'none';
+                    document.getElementById('coupon-error').style.display = 'block';
+                    document.getElementById('coupon-error').textContent = data.message;
+                    showToast('Erro', data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showToast('Erro', 'Erro ao validar cupom', 'error');
+            });
+        }
+        
+        function removeCoupon() {
+            appliedCoupon = null;
+            couponDiscount = 0;
+            
+            document.getElementById('coupon_code').value = '';
+            document.getElementById('coupon-error').style.display = 'none';
+            document.getElementById('coupon-success').style.display = 'none';
+            document.getElementById('coupon-discount-line').style.display = 'none';
+            
+            updateTotal();
+            showToast('Sucesso', 'Cupom removido', 'success');
+        }
+
+        // Event listeners
+        document.getElementById('apply-coupon').addEventListener('click', applyCoupon);
+        document.getElementById('remove-coupon').addEventListener('click', removeCoupon);
+
         // Busca CEP ao pressionar Enter
         cepInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 searchCep();
             }
         });
+        
+        // Aplicar cupom ao pressionar Enter
+        document.getElementById('coupon_code').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                applyCoupon();
+            }
+        });
     </script>
 </body>
-</html> 
+</html>

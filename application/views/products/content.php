@@ -242,7 +242,7 @@
                     </select>
                 </div>
 
-                <div class="mb-4">
+                <div class="mb-4 d-none" id="buyQuantitySection">
                     <label class="form-label fw-bold text-dark">Quantidade</label>
                     <input type="number" id="buyQuantity" min="1" value="1" class="form-control">
                     <div class="form-text">
@@ -363,6 +363,11 @@ window.addEventListener('load', function() {
                     // Preenche os dados do modal
                     document.getElementById('buyProductName').value = product.name;
                     document.getElementById('buyUnitPrice').value = this.formatPrice(product.price);
+                    
+                    // Reset do estado do modal - oculta campo de quantidade
+                    document.getElementById('buyQuantitySection').classList.add('d-none');
+                    document.getElementById('buyVariation').value = '';
+                    document.getElementById('buyQuantity').value = 1;
                     
                     // Armazena dados para uso posterior
                     this.currentBuyProduct = product;
@@ -522,14 +527,21 @@ window.addEventListener('load', function() {
                     const variationSelect = document.getElementById('buyVariation');
                     const quantityInput = document.getElementById('buyQuantity');
                     const maxQuantitySpan = document.getElementById('buyMaxQuantity');
+                    const quantitySection = document.getElementById('buyQuantitySection');
                     
                     const selectedOption = variationSelect.options[variationSelect.selectedIndex];
-                    if (selectedOption && selectedOption.dataset.quantity) {
+                    if (selectedOption && selectedOption.value && selectedOption.dataset.quantity) {
+                        // Mostra o campo de quantidade quando uma variação é selecionada
+                        quantitySection.classList.remove('d-none');
+                        
                         const maxQuantity = parseInt(selectedOption.dataset.quantity);
                         maxQuantitySpan.textContent = maxQuantity;
                         quantityInput.max = maxQuantity;
                         quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, maxQuantity);
                     } else {
+                        // Oculta o campo de quantidade quando nenhuma variação é selecionada
+                        quantitySection.classList.add('d-none');
+                        
                         maxQuantitySpan.textContent = '-';
                         quantityInput.max = '';
                         quantityInput.value = 1;
