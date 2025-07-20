@@ -1,8 +1,9 @@
 <div id="app" class="min-vh-100" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
     <!-- Header -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <!-- Navbar elegante -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold text-dark" href="<?= base_url('products') ?>">
+            <a class="navbar-brand" href="<?= base_url('products') ?>">
                 <i class="bi bi-shop text-primary"></i> Montink
             </a>
             <div class="navbar-nav ms-auto">
@@ -15,44 +16,47 @@
             </div>
         </div>
     </nav>
-
-    <!-- Main Content -->
-    <div class="container py-5">
-        <div class="row">
-            <div class="col-12">
-                <!-- Header da Página -->
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h1 class="h2 fw-bold text-dark mb-1">Catálogo de Produtos</h1>
-                        <p class="text-muted mb-0">Gerencie seus produtos e vendas</p>
-                    </div>
-                    <div class="d-flex align-items-center gap-3">
-                        <span class="badge bg-light text-dark fs-6 px-3 py-2">
-                            {{ products.length }} {{ products.length === 1 ? 'produto' : 'produtos' }}
-                        </span>
-                        
-                        <!-- Toggle de Visualização -->
-                        <div class="btn-group" role="group" aria-label="Tipo de visualização">
-                            <input type="radio" class="btn-check" name="viewType" id="viewTable" autocomplete="off" v-model="viewType" value="table">
-                            <label class="btn btn-outline-secondary" for="viewTable">
-                                <i class="bi bi-list-ul"></i>
-                            </label>
-
-                            <input type="radio" class="btn-check" name="viewType" id="viewCards" autocomplete="off" v-model="viewType" value="cards">
-                            <label class="btn btn-outline-secondary" for="viewCards">
-                                <i class="bi bi-grid-3x3-gap"></i>
-                            </label>
+    
+    <!-- Container principal -->
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-11">
+                <div class="main-container">
+                    <div class="page-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h1 class="page-title">
+                                    <i class="bi bi-shop"></i> Catálogo de Produtos
+                                </h1>
+                                <p class="mb-0 opacity-75">Gerencie seus produtos e vendas</p>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="badge bg-light text-dark fs-6 px-3 py-2">
+                                    {{ products.length }} {{ products.length === 1 ? 'produto' : 'produtos' }}
+                                </span>
+                                
+                                <!-- Toggle de Visualização -->
+                                <div class="btn-group" role="group">
+                                    <input type="radio" class="btn-check" name="viewType" id="viewTable" autocomplete="off" v-model="viewType" value="table">
+                                    <label class="btn btn-outline-light" for="viewTable">
+                                        <i class="bi bi-list-ul"></i>
+                                    </label>
+                                    
+                                    <input type="radio" class="btn-check" name="viewType" id="viewCards" autocomplete="off" v-model="viewType" value="cards">
+                                    <label class="btn btn-outline-light" for="viewCards">
+                                        <i class="bi bi-grid-3x3-gap"></i>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                                    <!-- Estado vazio -->
-                <div v-if="products.length === 0" class="text-center py-5">
-                    <div class="card border-0 shadow-sm bg-white rounded-4">
-                        <div class="card-body p-5">
+    
+                    <div class="p-4">
+                        <!-- Estado vazio -->
+                        <div v-if="products.length === 0" class="text-center py-5">
                             <div class="mb-4">
-                                <div class="bg-primary bg-opacity-10 rounded-circle mx-auto mb-3" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="bi bi-box text-primary" style="font-size: 2.5rem;"></i>
+                                <div class="bg-primary bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                    <i class="bi bi-box text-primary fs-1"></i>
                                 </div>
                             </div>
                             <h3 class="fw-bold text-dark mb-2">Nenhum produto cadastrado</h3>
@@ -61,141 +65,143 @@
                                 <i class="bi bi-plus-circle me-2"></i> Criar Primeiro Produto
                             </button>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Visualização em Tabela (Padrão) -->
-                <div v-else-if="viewType === 'table'" class="card border-0 shadow-sm bg-white rounded-4">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="fw-bold text-dark px-4 py-3">Produto</th>
-                                    <th class="fw-bold text-dark py-3">Preço</th>
-                                    <th class="fw-bold text-dark py-3">Estoque</th>
-                                    <th class="fw-bold text-dark py-3 text-center">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="product in products" :key="product.id" class="align-middle">
-                                    <td class="px-4 py-3">
-                                        <div>
-                                            <h6 class="mb-1 fw-bold text-dark">{{ product.name }}</h6>
-                                            <small class="text-muted">ID: #{{ product.id }}</small>
-                                        </div>
-                                    </td>
-                                    <td class="py-3">
-                                        <span class="fw-bold text-success fs-5">{{ formatPrice(product.price) }}</span>
-                                    </td>
-                                    <td class="py-3">
-                                        <div>
-                                            <span class="badge" :class="getTotalStock(product) > 10 ? 'bg-success' : getTotalStock(product) > 0 ? 'bg-warning' : 'bg-danger'">
-                                                {{ getTotalStock(product) }} total
-                                            </span>
-                                            <div class="mt-1">
-                                                <small class="text-muted">
-                                                    <span v-for="(stock, index) in product.stock" :key="stock.variation">
-                                                        {{ stock.variation }}: {{ stock.quantity }}{{ index < product.stock.length - 1 ? ' • ' : '' }}
+    
+                        <!-- Visualização em Tabela -->
+                        <div v-else-if="viewType === 'table'" class="card">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="fw-bold text-dark px-4 py-3">Produto</th>
+                                            <th class="fw-bold text-dark py-3">Preço</th>
+                                            <th class="fw-bold text-dark py-3">Estoque</th>
+                                            <th class="fw-bold text-dark py-3 text-center">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="product in products" :key="product.id" class="align-middle">
+                                            <td class="px-4 py-3">
+                                                <div>
+                                                    <h6 class="mb-1 fw-bold text-dark">{{ product.name }}</h6>
+                                                    <small class="text-muted">ID: #{{ product.id }}</small>
+                                                </div>
+                                            </td>
+                                            <td class="py-3">
+                                                <span class="fw-bold text-success fs-5">{{ formatPrice(product.price) }}</span>
+                                            </td>
+                                            <td class="py-3">
+                                                <div>
+                                                    <span class="badge" :class="getTotalStock(product) > 10 ? 'bg-success' : getTotalStock(product) > 0 ? 'bg-warning' : 'bg-danger'">
+                                                        {{ getTotalStock(product) }} total
                                                     </span>
-                                                </small>
+                                                    <div class="mt-1">
+                                                        <small class="text-muted">
+                                                            <span v-for="(stock, index) in product.stock" :key="stock.variation">
+                                                                {{ stock.variation }}: {{ stock.quantity }}{{ index < product.stock.length - 1 ? ' • ' : '' }}
+                                                            </span>
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="py-3 text-center">
+                                                <div class="d-flex gap-2 justify-content-center">
+                                                    <button 
+                                                        type="button" 
+                                                        class="btn btn-success btn-sm"
+                                                        @click="showBuyModal(product)"
+                                                        :disabled="getTotalStock(product) === 0"
+                                                        title="Adicionar ao carrinho"
+                                                    >
+                                                        <i class="bi bi-cart-plus"></i>
+                                                    </button>
+                                                    <button 
+                                                        type="button" 
+                                                        class="btn btn-primary btn-sm"
+                                                        @click="showEditModal(product)"
+                                                        title="Editar produto"
+                                                    >
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                    <button 
+                                                        type="button" 
+                                                        class="btn btn-danger btn-sm"
+                                                        @click="deleteProduct(product.id)"
+                                                        title="Excluir produto"
+                                                    >
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+    
+                        <!-- Visualização em Cards -->
+                        <div v-else class="row g-4">
+                            <div v-for="product in products" :key="product.id" class="col-lg-4 col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-body p-4">
+                                        <!-- Header do Card -->
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <div class="flex-grow-1">
+                                                <h5 class="card-title fw-bold text-dark mb-1">{{ product.name }}</h5>
+                                                <p class="text-muted small mb-0">ID: #{{ product.id }}</p>
+                                            </div>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-light rounded-pill" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="#" @click="showEditModal(product)">
+                                                        <i class="bi bi-pencil me-2"></i>Editar
+                                                    </a></li>
+                                                    <li><a class="dropdown-item text-danger" href="#" @click="deleteProduct(product.id)">
+                                                        <i class="bi bi-trash me-2"></i>Excluir
+                                                    </a></li>
+                                                </ul>
                                             </div>
                                         </div>
-                                    </td>
-                                    <td class="py-3 text-center">
-                                        <div class="d-flex gap-2 justify-content-center">
+    
+                                        <!-- Preço -->
+                                        <div class="mb-3">
+                                            <span class="h4 fw-bold text-success">{{ formatPrice(product.price) }}</span>
+                                        </div>
+    
+                                        <!-- Estoque -->
+                                        <div class="mb-4">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="small text-muted">Estoque Total</span>
+                                                <span class="badge" :class="getTotalStock(product) > 10 ? 'bg-success' : getTotalStock(product) > 0 ? 'bg-warning' : 'bg-danger'">
+                                                    {{ getTotalStock(product) }} unidades
+                                                </span>
+                                            </div>
+                                            <div class="small text-muted">
+                                                <div v-for="stock in product.stock" :key="stock.variation" class="d-flex justify-content-between">
+                                                    <span>{{ stock.variation }}:</span>
+                                                    <span>{{ stock.quantity }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+    
+                                        <!-- Ações -->
+                                        <div class="d-grid">
                                             <button 
                                                 type="button" 
-                                                class="btn btn-primary btn-sm"
+                                                class="btn btn-success"
                                                 @click="showBuyModal(product)"
                                                 :disabled="getTotalStock(product) === 0"
                                             >
-                                                <i class="bi bi-cart-plus"></i>
-                                            </button>
-                                            <button 
-                                                type="button" 
-                                                class="btn btn-outline-secondary btn-sm"
-                                                @click="showEditModal(product)"
-                                            >
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button 
-                                                type="button" 
-                                                class="btn btn-outline-danger btn-sm"
-                                                @click="deleteProduct(product.id)"
-                                            >
-                                                <i class="bi bi-trash"></i>
+                                                <i class="bi bi-cart-plus me-2"></i>
+                                                {{ getTotalStock(product) === 0 ? 'Sem Estoque' : 'Adicionar ao Carrinho' }}
                                             </button>
                                         </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Visualização em Cards -->
-                <div v-else class="row g-4">
-                    <div v-for="product in products" :key="product.id" class="col-lg-4 col-md-6">
-                        <div class="card h-100 border-0 shadow-sm bg-white rounded-4 hover-lift">
-                            <div class="card-body p-4">
-                                <!-- Header do Card -->
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div class="flex-grow-1">
-                                        <h5 class="card-title fw-bold text-dark mb-1">{{ product.name }}</h5>
-                                        <p class="text-muted small mb-0">ID: #{{ product.id }}</p>
                                     </div>
-                                    <div class="dropdown">
-                                        <button class="btn btn-sm btn-light rounded-circle" type="button" data-bs-toggle="dropdown">
-                                            <i class="bi bi-three-dots-vertical"></i>
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="#" @click="showEditModal(product)">
-                                                <i class="bi bi-pencil me-2"></i>Editar
-                                            </a></li>
-                                            <li><a class="dropdown-item text-danger" href="#" @click="deleteProduct(product.id)">
-                                                <i class="bi bi-trash me-2"></i>Excluir
-                                            </a></li>
-                                        </ul>
-                                    </div>
-                                </div>
-
-                                <!-- Preço -->
-                                <div class="mb-3">
-                                    <span class="h4 fw-bold text-success">{{ formatPrice(product.price) }}</span>
-                                </div>
-
-                                <!-- Estoque -->
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span class="small text-muted">Estoque Total</span>
-                                        <span class="badge" :class="getTotalStock(product) > 10 ? 'bg-success' : getTotalStock(product) > 0 ? 'bg-warning' : 'bg-danger'">
-                                            {{ getTotalStock(product) }} unidades
-                                        </span>
-                                    </div>
-                                    <div class="small text-muted">
-                                        <div v-for="stock in product.stock" :key="stock.variation" class="d-flex justify-content-between">
-                                            <span>{{ stock.variation }}:</span>
-                                            <span>{{ stock.quantity }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Ações -->
-                                <div class="d-grid">
-                                    <button 
-                                        type="button" 
-                                        class="btn btn-primary"
-                                        @click="showBuyModal(product)"
-                                        :disabled="getTotalStock(product) === 0"
-                                    >
-                                        <i class="bi bi-cart-plus me-2"></i>
-                                        {{ getTotalStock(product) === 0 ? 'Sem Estoque' : 'Adicionar ao Carrinho' }}
-                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
                 </div>
             </div>
         </div>
@@ -263,7 +269,7 @@
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="bi bi-x-circle me-2"></i>Cancelar
                 </button>
                 <button type="button" class="btn btn-success px-4" id="buyAddToCartBtn">
@@ -372,16 +378,74 @@ window.addEventListener('load', function() {
                                 
 
                 async deleteProduct(productId) {
-                    try {
-                        const response = await axios.get(`products/delete/${productId}`);
-                        if (response.status === 200) {
-                            utils.showToast('Sucesso', 'Produto excluído com sucesso!', 'success');
-                            this.loadProducts();
+                    // Busca o produto para mostrar o nome na confirmação
+                    const product = this.products.find(p => p.id === productId);
+                    const productName = product ? product.name : 'este produto';
+                    
+                    // Cria modal de confirmação personalizado
+                    const confirmModal = document.createElement('div');
+                    confirmModal.className = 'modal fade';
+                    confirmModal.innerHTML = `
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header border-0 pb-0">
+                                    <div>
+                                        <h5 class="modal-title fw-bold text-danger mb-1">
+                                            <i class="bi bi-exclamation-triangle me-2"></i>Confirmar Exclusão
+                                        </h5>
+                                        <p class="text-muted small mb-0">Esta ação não pode ser desfeita</p>
+                                    </div>
+                                </div>
+                                <div class="modal-body px-4">
+                                    <div class="text-center mb-4">
+                                        <div class="bg-danger bg-opacity-10 rounded-circle mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-trash text-danger" style="font-size: 1.5rem;"></i>
+                                        </div>
+                                        <p class="mb-0">Tem certeza que deseja excluir o produto <strong>${productName}</strong>?</p>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 pt-0">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                                    </button>
+                                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                                        <i class="bi bi-trash me-2"></i>Excluir Produto
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(confirmModal);
+                    const modal = new bootstrap.Modal(confirmModal);
+                    
+                    // Adiciona evento de confirmação
+                    const confirmBtn = confirmModal.querySelector('#confirmDeleteBtn');
+                    confirmBtn.addEventListener('click', async () => {
+                        confirmBtn.disabled = true;
+                        confirmBtn.innerHTML = '<i class="bi bi-trash"></i> Excluindo...';
+                        
+                        try {
+                            const response = await axios.get(`products/delete/${productId}`);
+                            if (response.status === 200) {
+                                utils.showToast('Sucesso', 'Produto excluído com sucesso!', 'success');
+                                this.loadProducts();
+                                modal.hide();
+                            }
+                        } catch (error) {
+                            console.error('Erro:', error);
+                            utils.showToast('Erro', 'Erro ao excluir produto', 'error');
+                            confirmBtn.disabled = false;
+                            confirmBtn.innerHTML = '<i class="bi bi-trash me-2"></i>Excluir Produto';
                         }
-                    } catch (error) {
-                        console.error('Erro:', error);
-                        utils.showToast('Erro', 'Erro ao excluir produto', 'error');
-                    }
+                    });
+                    
+                    // Remove modal do DOM quando fechado
+                    confirmModal.addEventListener('hidden.bs.modal', () => {
+                        document.body.removeChild(confirmModal);
+                    });
+                    
+                    modal.show();
                 },
 
                 async loadProducts() {

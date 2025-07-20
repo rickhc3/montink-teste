@@ -296,7 +296,14 @@ class Products extends CI_Controller {
 
     public function clear_cart() {
         $this->session->unset_userdata('cart');
-        redirect('products/cart');
+        
+        // Verifica se é uma requisição AJAX
+        if ($this->input->get_request_header('X-Requested-With') === 'XMLHttpRequest') {
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode(['success' => true, 'message' => 'Carrinho limpo com sucesso']));
+        } else {
+            redirect('products/cart');
+        }
     }
 
     public function checkout() {

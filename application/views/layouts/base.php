@@ -10,8 +10,249 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     
     <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --light-gray: #f8f9fa;
+            --medium-gray: #6c757d;
+            --border-color: #dee2e6;
+        }
+        
         [v-cloak] {
             display: none;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: 12px 12px 0 0;
+            padding: 2rem;
+        }
+        
+        .page-title {
+            font-weight: 300;
+            font-size: 2.2rem;
+            margin: 0;
+        }
+        
+        .page-title i {
+            margin-right: 0.5rem;
+            opacity: 0.9;
+        }
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color) !important;
+        }
+        
+        .card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .btn {
+            border-radius: 4px;
+            padding: 0.4rem 0.8rem;
+            font-weight: 500;
+            transition: all 0.15s ease;
+            border: 1px solid transparent;
+            font-size: 0.875rem;
+        }
+        
+        /* Botões de ação primária - azul para criar/salvar */
+        .btn-primary {
+            background: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+            border-color: #2980b9;
+            transform: translateY(-1px);
+        }
+        
+        /* Botões de sucesso - verde para adicionar/confirmar */
+        .btn-success {
+            background: var(--success-color);
+            border: 1px solid var(--success-color);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #229954;
+            border-color: #229954;
+            transform: translateY(-1px);
+        }
+        
+        /* Botões de perigo - vermelho para excluir */
+        .btn-danger {
+            background: var(--danger-color);
+            border: 1px solid var(--danger-color);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+            border-color: #c0392b;
+            transform: translateY(-1px);
+        }
+        
+        /* Botões secundários - cinza para cancelar/voltar */
+        .btn-secondary, .btn-light {
+            background: var(--medium-gray);
+            border: 1px solid var(--medium-gray);
+            color: white;
+        }
+        
+        .btn-secondary:hover, .btn-light:hover {
+            background: #5a6268;
+            border-color: #5a6268;
+            transform: translateY(-1px);
+        }
+        
+        /* Botões outline - mais discretos */
+        .btn-outline-primary {
+            background: transparent;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            color: var(--accent-color);
+        }
+        
+        .btn-outline-primary:hover {
+            background: rgba(52, 152, 219, 0.1);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+        
+        .btn-outline-secondary {
+            background: transparent;
+            border: 1px solid rgba(108, 117, 125, 0.3);
+            color: var(--medium-gray);
+        }
+        
+        .btn-outline-secondary:hover {
+            background: rgba(108, 117, 125, 0.1);
+            border-color: var(--medium-gray);
+            color: var(--medium-gray);
+        }
+        
+        .btn-outline-danger {
+            background: transparent;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            color: var(--danger-color);
+        }
+        
+        .btn-outline-danger:hover {
+            background: rgba(231, 76, 60, 0.1);
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+        }
+        
+        /* Botões pequenos ainda mais discretos */
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+            border-radius: 3px;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+            padding: 0.75rem 1rem;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+        
+        .table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+        
+        .badge {
+            border-radius: 4px;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .badge.bg-success {
+            background: linear-gradient(135deg, var(--success-color), #229954) !important;
+        }
+        
+        .badge.bg-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e67e22) !important;
+        }
+        
+        .badge.bg-danger {
+            background: linear-gradient(135deg, var(--danger-color), #c0392b) !important;
+        }
+        
+        .modal-content {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .toast {
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
         }
         
         .fade-enter-active, .fade-leave-active {
@@ -33,78 +274,23 @@
             opacity: 0;
         }
         
-        /* Estilos customizados */
         .hover-lift {
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
         
         .hover-lift:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-        }
-        
-        .rounded-4 {
-            border-radius: 1rem !important;
-        }
-        
-        .navbar-brand {
-            font-size: 1.5rem;
-        }
-        
-        .card {
-            transition: all 0.3s ease;
-        }
-        
-        .badge {
-            font-size: 0.75rem;
-        }
-        
-        .btn {
-            border-radius: 0.5rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        
-        .btn:hover {
-            transform: translateY(-1px);
-        }
-        
-        .dropdown-menu {
-            border: none;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-            border-radius: 0.5rem;
-        }
-        
-        .modal-content {
-            border: none;
-            border-radius: 1rem;
-            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
-        }
-        
-        .form-control, .form-select {
-            border-radius: 0.5rem;
-            border: 1px solid #e9ecef;
-            transition: all 0.3s ease;
-        }
-        
-        .form-control:focus, .form-select:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-        }
-        
-        /* Estilos para tabela */
-        .table-hover tbody tr:hover {
-            background-color: rgba(0, 0, 0, 0.03);
+            transform: translateY(-2px);
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1) !important;
         }
         
         .btn-check:checked + .btn {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
+            background: linear-gradient(135deg, var(--accent-color), #2980b9);
+            border-color: var(--accent-color);
             color: #fff;
         }
         
         .btn-group .btn {
-            border-radius: 0.375rem;
+            border-radius: 6px;
         }
         
         .btn-group .btn:not(:last-child) {
@@ -116,15 +302,31 @@
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
         }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 1rem;
+                border-radius: 8px;
+            }
+            
+            .page-header {
+                padding: 1.5rem;
+                border-radius: 8px 8px 0 0;
+            }
+            
+            .page-title {
+                font-size: 1.8rem;
+            }
+        }
     </style>
 </head>
-<body class="bg-light">
+<body>
     <div id="app" v-cloak>
         <?= $content ?? '' ?>
     </div>
 
     <!-- Toast Container Global -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div class="toast-container position-fixed top-0 end-0 p-3">
         <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">
                 <strong id="toast-title" class="me-auto">Notificação</strong>
@@ -155,75 +357,51 @@
         window.utils = {
             // Formatar preço
             formatPrice: (value) => {
-                console.log('utils.formatPrice() - valor recebido:', value, 'tipo:', typeof value);
-                
                 if (value === null || value === undefined || value === '') {
-                    console.log('utils.formatPrice() - valor vazio ou nulo');
                     return '';
                 }
                 
-                // Converte para número se for string
                 let numericValue = value;
                 if (typeof value === 'string') {
                     numericValue = parseFloat(value);
                     if (isNaN(numericValue)) {
-                        console.log('utils.formatPrice() - string não é número válido');
                         return '';
                     }
                 }
                 
-                console.log('utils.formatPrice() - valor numérico:', numericValue);
-                const result = new Intl.NumberFormat('pt-BR', {
+                return new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL'
                 }).format(numericValue);
-                
-                console.log('utils.formatPrice() - resultado formatado:', result);
-                return result;
             },
             
-            // Parsear preço
             parsePrice: (value) => {
-                console.log('utils.parsePrice() - valor recebido:', value, 'tipo:', typeof value);
-                
                 if (value === null || value === undefined || value === '') {
-                    console.log('utils.parsePrice() - valor vazio ou nulo');
                     return 0;
                 }
                 
                 if (typeof value === 'number') {
-                    console.log('utils.parsePrice() - já é número:', value);
                     return value;
                 }
                 
                 if (typeof value === 'string') {
-                    // Remove tudo exceto números, vírgulas e pontos
                     let cleanValue = value.replace(/[^\d,.]/g, '');
-                    console.log('utils.parsePrice() - valor limpo:', cleanValue);
                     
-                    // Se tem vírgula e ponto, assume que vírgula é separador decimal
                     if (cleanValue.includes(',') && cleanValue.includes('.')) {
                         cleanValue = cleanValue.replace('.', '').replace(',', '.');
                     } else if (cleanValue.includes(',')) {
                         cleanValue = cleanValue.replace(',', '.');
                     }
                     
-                    console.log('utils.parsePrice() - valor final para parse:', cleanValue);
                     const result = parseFloat(cleanValue);
-                    console.log('utils.parsePrice() - resultado:', result);
                     return isNaN(result) ? 0 : result;
                 }
                 
-                console.log('utils.parsePrice() - tipo não suportado, retornando 0');
                 return 0;
             },
             
-            // Aplicar máscara de preço
             applyPriceMask: (element) => {
-                console.log('utils.applyPriceMask() - aplicando máscara para elemento:', element);
-                
                 if (!element) {
-                    console.error('utils.applyPriceMask() - elemento não fornecido');
                     return null;
                 }
                 
@@ -239,28 +417,20 @@
                         min: 0,
                         max: 999999.99,
                         parser: function (str) {
-                            console.log('utils.applyPriceMask() - parser chamado com:', str);
-                            const result = str.replace(/\D/g, '');
-                            console.log('utils.applyPriceMask() - parser resultado:', result);
-                            return result;
+                            return str.replace(/\D/g, '');
                         },
                         formatter: function (str) {
-                            console.log('utils.applyPriceMask() - formatter chamado com:', str);
-                            const result = str.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-                            console.log('utils.applyPriceMask() - formatter resultado:', result);
-                            return result;
+                            return str.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                         }
                     });
                     
-                    console.log('utils.applyPriceMask() - máscara criada com sucesso:', mask);
                     return mask;
                 } catch (error) {
-                    console.error('utils.applyPriceMask() - erro ao criar máscara:', error);
+                    console.error('Erro ao criar máscara:', error);
                     return null;
                 }
             },
             
-            // Mostrar toast
             showToast: (title, message, type = 'info') => {
                 const toast = document.getElementById('toast');
                 const toastTitle = document.getElementById('toast-title');
@@ -283,4 +453,4 @@
         };
     </script>
 </body>
-</html> 
+</html>

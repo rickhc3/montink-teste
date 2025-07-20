@@ -16,7 +16,7 @@
                     <div class="card-body p-5">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h1 class="card-title h2 mb-0">Editar Produto</h1>
-                            <a href="<?= base_url() ?>" class="btn btn-outline-secondary btn-sm">
+                            <a href="<?= base_url() ?>" class="btn btn-secondary btn-sm">
                                 <i class="bi bi-arrow-left"></i> Voltar
                             </a>
                         </div>
@@ -54,14 +54,14 @@
                                                     <input type="number" name="stock[<?= $item->id ?>][quantity]" value="<?= $item->quantity ?>" min="0" class="form-control" required>
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <button type="button" onclick="removeStock(this)" class="btn btn-outline-danger btn-sm">
+                                                    <button type="button" onclick="removeStock(this)" class="btn btn-danger btn-sm w-100" style="height: 38px;">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </div>
                                             </div>
                                             <?php endforeach; ?>
                                         </div>
-                                        <button type="button" onclick="addStock()" class="btn btn-outline-primary btn-sm">
+                                        <button type="button" onclick="addStock()" class="btn btn-success btn-sm">
                                             <i class="bi bi-plus-circle"></i> Adicionar Variação
                                         </button>
                                     </div>
@@ -128,7 +128,7 @@
                     <input type="number" name="stock[new_${stockIndex}][quantity]" placeholder="Estoque" min="0" class="form-control" required>
                 </div>
                 <div class="col-md-2">
-                    <button type="button" onclick="removeStock(this)" class="btn btn-outline-danger btn-sm">
+                    <button type="button" onclick="removeStock(this)" class="btn btn-danger btn-sm w-100" style="height: 38px;">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
@@ -142,4 +142,4 @@
         }
     </script>
 </body>
-</html> 
+</html>

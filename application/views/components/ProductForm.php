@@ -68,7 +68,7 @@ const ProductForm = {
                                 required
                             >
                         </div>
-                        <div :class="isEdit ? 'col-md-4' : 'col-md-3'">
+                        <div :class="isEdit ? 'col-md-5' : 'col-md-3'">
                             <input 
                                 type="number" 
                                 v-model="variation.quantity" 
@@ -78,13 +78,15 @@ const ProductForm = {
                                 required
                             >
                         </div>
-                        <div class="col-md-1">
+                        <div class="col-md-1 d-flex align-items-center">
                             <button 
                                 type="button" 
                                 @click="removeVariation(index)" 
-                                class="btn btn-outline-danger btn-sm"
+                                class="btn btn-danger btn-sm w-100"
+                                title="Remover variação"
+                                style="height: 38px; display: flex; align-items: center; justify-content: center;"
                             >
-                                <i class="bi bi-trash"></i>
+                                <i class="bi bi-trash" style="font-size: 0.9rem;"></i>
                             </button>
                         </div>
                     </div>
@@ -92,7 +94,7 @@ const ProductForm = {
                 <button 
                     type="button" 
                     @click="addVariation" 
-                    class="btn btn-outline-primary btn-sm"
+                    class="btn btn-success btn-sm"
                 >
                     <i class="bi bi-plus-circle"></i> Adicionar Variação
                 </button>
