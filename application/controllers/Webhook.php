@@ -138,7 +138,7 @@ class Webhook extends CI_Controller {
                 log_message('error', 'Falha ao enviar email de cancelamento: ' . $this->email->print_debugger());
             }
         } catch (Exception $e) {
-            log_message('error', 'Email error: ' . $e->getMessage());
+            log_message('error', 'Erro de email: ' . $e->getMessage());
         }
     }
 
