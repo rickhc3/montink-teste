@@ -135,7 +135,8 @@ const ProductForm = {
         initializeForm() {
             if (this.isEdit && this.product) {
                 this.formData.name = this.product.name || '';
-                this.formData.price = this.product.price || '';
+                // PROBLEMA: O preço pode já estar formatado e a máscara é aplicada novamente
+                this.formData.price = utils.parsePrice(this.product.price) || 0;
                 
                 if (this.product.stock && Array.isArray(this.product.stock)) {
                     this.formData.variations = this.product.stock.map(item => ({
@@ -160,6 +161,11 @@ const ProductForm = {
                     console.log('ProductForm.setupPriceMask() - configurando máscara para:', this.$refs.priceInput);
                     this.priceMask = utils.applyPriceMask(this.$refs.priceInput);
                     console.log('ProductForm.setupPriceMask() - máscara criada:', this.priceMask);
+                    
+                    // Atualiza o valor da máscara com o valor parseado
+                    if (this.priceMask && this.formData.price) {
+                        this.priceMask.value = utils.parsePrice(this.formData.price);
+                    }
                 } else {
                     console.error('ProductForm.setupPriceMask() - priceInput ref não encontrado');
                 }
@@ -225,4 +231,4 @@ const ProductForm = {
         }
     }
 };
-</script> 
+</script>
