@@ -7,6 +7,9 @@
                 <i class="bi bi-shop text-primary"></i> Montink
             </a>
             <div class="navbar-nav ms-auto">
+                <a href="<?= base_url('coupons') ?>" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-tag"></i> Cupons
+                </a>
                 <a href="<?= base_url('products/cart') ?>" class="btn btn-outline-primary me-2">
                     <i class="bi bi-cart3"></i> Carrinho
                 </a>

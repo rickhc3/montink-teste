@@ -283,6 +283,11 @@ class Products extends CI_Controller {
 
     public function remove_from_cart($item_key = null) {
         if (!$item_key) {
+            if ($this->input->get_request_header('X-Requested-With') === 'XMLHttpRequest') {
+                $this->output->set_content_type('application/json')
+                             ->set_output(json_encode(['success' => false, 'message' => 'Item não especificado']));
+                return;
+            }
             redirect('products/cart');
         }
         
@@ -291,6 +296,18 @@ class Products extends CI_Controller {
         if (isset($cart[$item_key])) {
             unset($cart[$item_key]);
             $this->session->set_userdata('cart', $cart);
+            
+            if ($this->input->get_request_header('X-Requested-With') === 'XMLHttpRequest') {
+                $this->output->set_content_type('application/json')
+                             ->set_output(json_encode(['success' => true, 'message' => 'Item removido com sucesso']));
+                return;
+            }
+        } else {
+            if ($this->input->get_request_header('X-Requested-With') === 'XMLHttpRequest') {
+                $this->output->set_content_type('application/json')
+                             ->set_output(json_encode(['success' => false, 'message' => 'Item não encontrado']));
+                return;
+            }
         }
 
         redirect('products/cart');
@@ -305,6 +322,19 @@ class Products extends CI_Controller {
                          ->set_output(json_encode(['success' => true, 'message' => 'Carrinho limpo com sucesso']));
         } else {
             redirect('products/cart');
+        }
+    }
+
+    public function clear_sessions() {
+        // Limpa todas as sessões do CodeIgniter
+        $this->session->sess_destroy();
+        
+        // Verifica se é uma requisição AJAX
+        if ($this->input->get_request_header('X-Requested-With') === 'XMLHttpRequest') {
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode(['success' => true, 'message' => 'Sessões limpas com sucesso']));
+        } else {
+            redirect('products');
         }
     }
 
@@ -323,15 +353,17 @@ class Products extends CI_Controller {
             return;
         }
 
-        // Validar dados do cliente
-        $required_fields = ['customer_name', 'customer_email', 'shipping_address', 'shipping_city', 'shipping_state', 'shipping_zipcode'];
-        foreach ($required_fields as $field) {
-            if (empty($input[$field])) {
-                $this->output->set_content_type('application/json')
-                             ->set_output(json_encode(['success' => false, 'message' => 'Todos os campos são obrigatórios']));
-                return;
-            }
-        }
+        // Para finalização simples do carrinho, vamos usar dados padrão
+        // Em uma implementação completa, estes dados viriam de um formulário de checkout
+        $customer_data = [
+            'customer_name' => 'Cliente Padrão',
+            'customer_email' => 'cliente@exemplo.com',
+            'customer_phone' => '',
+            'shipping_address' => 'Endereço a definir',
+            'shipping_city' => 'Cidade a definir',
+            'shipping_state' => 'Estado a definir',
+            'shipping_zipcode' => '00000-000'
+        ];
 
         // Calcular subtotal
         $subtotal = 0;
@@ -382,20 +414,13 @@ class Products extends CI_Controller {
         $total = $subtotal + $shipping_cost - $discount_amount;
 
         // Dados do pedido
-        $order_data = [
-            'customer_name' => $input['customer_name'],
-            'customer_email' => $input['customer_email'],
-            'customer_phone' => $input['customer_phone'] ?? null,
-            'shipping_address' => $input['shipping_address'],
-            'shipping_city' => $input['shipping_city'],
-            'shipping_state' => $input['shipping_state'],
-            'shipping_zipcode' => $input['shipping_zipcode'],
+        $order_data = array_merge($customer_data, [
             'subtotal' => $subtotal,
             'shipping_cost' => $shipping_cost,
             'discount_amount' => $discount_amount,
             'total' => $total,
             'coupon_code' => $coupon_code
-        ];
+        ]);
 
         // Criar pedido
         $result = $this->Order_model->create_order($order_data, $cart_items);

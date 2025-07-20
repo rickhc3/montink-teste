@@ -343,12 +343,12 @@
                                                             <div class="price-text">R$ <?= number_format($item['price'] * $item['quantity'], 2, ',', '.') ?></div>
                                                         </div>
                                                         <div class="col-md-1 text-end">
-                                                            <a href="<?= base_url('products/remove_from_cart/' . $key) ?>" 
-                                                               class="remove-btn"
-                                                               onclick="return confirm('Remover este item do carrinho?')"
-                                                               title="Remover item">
+                                                            <button type="button" 
+                                                                    class="remove-btn"
+                                                                    onclick="removeItem('<?= $key ?>')"
+                                                                    title="Remover item">
                                                                 <i class="bi bi-trash"></i>
-                                                            </a>
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -391,6 +391,36 @@
                                                 <strong id="shipping-cost">A calcular</strong>
                                             </div>
                                             
+                                            <!-- Seção de Cupom -->
+                                            <div class="mb-4">
+                                                <label class="form-label fw-bold mb-3">
+                                                    <i class="bi bi-tag me-2"></i>Cupom de Desconto
+                                                </label>
+                                                <div class="input-group">
+                                                    <input type="text" id="coupon-code" class="form-control" placeholder="Digite o código do cupom" style="text-transform: uppercase;">
+                                                    <button type="button" onclick="applyCoupon()" class="btn btn-outline-primary">
+                                                        <i class="bi bi-check"></i> Aplicar
+                                                    </button>
+                                                </div>
+                                                <div id="coupon-error" class="text-danger small mt-1" style="display: none;"></div>
+                                                <div id="coupon-success" class="alert alert-success mt-2" style="display: none;">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <strong id="applied-coupon-code"></strong><br>
+                                                            <small id="applied-coupon-discount"></small>
+                                                        </div>
+                                                        <button type="button" onclick="removeCoupon()" class="btn btn-sm btn-outline-danger">
+                                                            <i class="bi bi-x"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="summary-line" id="coupon-discount-line" style="display: none;">
+                                                <span>Desconto:</span>
+                                                <strong class="text-success" id="coupon-discount-amount">- R$ 0,00</strong>
+                                            </div>
+                                            
                                             <div class="summary-total">
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <span class="fw-bold">Total:</span>
@@ -418,14 +448,26 @@
     </div>
 
     <!-- Toast Container -->
-    <div class="toast-container position-fixed top-0 end-0 p-3">
-        <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
-                <strong class="me-auto" id="toast-title">Notificação</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body" id="toast-message">
-                Mensagem do toast
+    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
+    <!-- Modal de Confirmação -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 15px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                <div class="modal-header" style="background: linear-gradient(135deg, #2c3e50, #34495e); color: white; border-radius: 15px 15px 0 0; border: none;">
+                    <h5 class="modal-title" id="confirmModalLabel">Confirmar Ação</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="padding: 2rem;">
+                    <div class="text-center mb-3">
+                        <i class="bi bi-question-circle-fill" style="font-size: 3rem; color: #f39c12;"></i>
+                    </div>
+                    <p id="confirmModalMessage" class="text-center mb-0" style="font-size: 1.1rem; color: #2c3e50;">Tem certeza que deseja realizar esta ação?</p>
+                </div>
+                <div class="modal-footer" style="border: none; padding: 1rem 2rem 2rem;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 25px; padding: 0.5rem 1.5rem;">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmModalConfirm" style="border-radius: 25px; padding: 0.5rem 1.5rem;">Confirmar</button>
+                </div>
             </div>
         </div>
     </div>
@@ -434,30 +476,77 @@
     <script>
         // Função para mostrar toast
         function showToast(title, message, type = 'info') {
-            const toast = document.getElementById('toast');
-            const toastTitle = document.getElementById('toast-title');
-            const toastMessage = document.getElementById('toast-message');
+            const toastContainer = document.getElementById('toast-container');
+            const toastId = 'toast-' + Date.now();
             
-            const colors = {
-                'success': 'text-success',
-                'error': 'text-danger',
-                'warning': 'text-warning',
-                'info': 'text-info'
-            };
+            const bgColor = {
+                'success': 'bg-success',
+                'error': 'bg-danger',
+                'warning': 'bg-warning',
+                'info': 'bg-info'
+            }[type] || 'bg-info';
             
-            toastTitle.textContent = title;
-            toastTitle.className = `me-auto ${colors[type] || colors.info}`;
-            toastMessage.textContent = message;
+            const toast = document.createElement('div');
+            toast.id = toastId;
+            toast.className = `toast align-items-center text-white ${bgColor} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
             
-            const bsToast = new bootstrap.Toast(toast);
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <strong>${title}</strong><br>${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            const bsToast = new bootstrap.Toast(toast, {
+                autohide: true,
+                delay: 5000
+            });
+            
             bsToast.show();
+            
+            toast.addEventListener('hidden.bs.toast', function() {
+                toast.remove();
+            });
+        }
+
+        function showConfirmModal(title, message, onConfirm) {
+            const modal = document.getElementById('confirmModal');
+            const modalTitle = document.getElementById('confirmModalLabel');
+            const modalMessage = document.getElementById('confirmModalMessage');
+            const confirmBtn = document.getElementById('confirmModalConfirm');
+            
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            
+            // Remove event listeners anteriores
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            
+            // Adiciona novo event listener
+            newConfirmBtn.addEventListener('click', function() {
+                const bsModal = bootstrap.Modal.getInstance(modal);
+                bsModal.hide();
+                onConfirm();
+            });
+            
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
         }
 
         // Máscara para CEP
         const cepInput = document.getElementById('cep');
-        const cepMask = IMask(cepInput, {
-            mask: '00000-000'
-        });
+        if (cepInput) {
+            const cepMask = IMask(cepInput, {
+                mask: '00000-000'
+            });
+        }
 
         function calculateShipping() {
             const cep = cepInput.value.replace(/\D/g, '');
@@ -470,7 +559,7 @@
             // Mostra loading
             document.getElementById('shipping-cost').innerHTML = '<i class="bi bi-hourglass-split"></i> Calculando...';
 
-            const subtotal = <?= $subtotal ?>;
+            const subtotal = <?= isset($subtotal) ? $subtotal : 0 ?>;
             
             // Chama o backend para calcular frete
             fetch('<?= base_url("products/calculate_shipping") ?>', {
@@ -497,9 +586,8 @@
                     // Atualiza valores
                     document.getElementById('shipping-cost').innerHTML = 
                         data.shipping === 0 ? '<span class="text-success"><i class="bi bi-gift"></i> Grátis</span>' : `R$ ${data.shipping.toFixed(2).replace('.', ',')}`;
-                    document.getElementById('total-cost').textContent = 
-                        `R$ ${data.total.toFixed(2).replace('.', ',')}`;
                     
+                    updateTotal();
                     showToast('Sucesso', 'Frete calculado com sucesso!', 'success');
                 } else {
                     showToast('Erro', 'CEP não encontrado', 'error');
@@ -513,69 +601,196 @@
             });
         }
 
-        function finalizeOrder() {
-            if (!confirm('Confirma a finalização do pedido?')) {
+        let appliedCoupon = null;
+        let couponDiscount = 0;
+
+        function applyCoupon() {
+            const couponCode = document.getElementById('coupon-code').value.trim();
+            
+            if (!couponCode) {
+                showToast('Atenção', 'Digite um código de cupom', 'warning');
                 return;
             }
 
-            fetch('<?= base_url("products/finalize_order") ?>', {
+            const subtotal = <?= isset($subtotal) ? $subtotal : 0 ?>;
+            
+            fetch('<?= base_url("products/validate_coupon") ?>', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',
                     'X-Requested-With': 'XMLHttpRequest'
-                }
+                },
+                body: `code=${encodeURIComponent(couponCode)}&subtotal=${subtotal}`
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    showToast('Sucesso', data.message, 'success');
-                    setTimeout(() => {
-                        window.location.href = '<?= base_url("products") ?>';
-                    }, 2000);
+                if (data.valid) {
+                    appliedCoupon = data.coupon;
+                    couponDiscount = data.discount;
+                    
+                    document.getElementById('coupon-error').style.display = 'none';
+                    document.getElementById('coupon-success').style.display = 'block';
+                    document.getElementById('applied-coupon-code').textContent = couponCode;
+                    document.getElementById('applied-coupon-discount').textContent = `Desconto: ${data.discount_formatted}`;
+                    document.getElementById('coupon-discount-amount').textContent = `- ${data.discount_formatted}`;
+                    document.getElementById('coupon-discount-line').style.display = 'flex';
+                    
+                    updateTotal();
+                    showToast('Sucesso', 'Cupom aplicado com sucesso!', 'success');
                 } else {
-                    showToast('Erro', data.message, 'error');
+                    document.getElementById('coupon-success').style.display = 'none';
+                    document.getElementById('coupon-error').style.display = 'block';
+                    document.getElementById('coupon-error').textContent = data.message;
                 }
             })
             .catch(error => {
                 console.error('Erro:', error);
-                showToast('Erro', 'Erro ao finalizar pedido. Tente novamente.', 'error');
+                showToast('Erro', 'Erro ao validar cupom', 'error');
             });
+        }
+
+        function removeCoupon() {
+            appliedCoupon = null;
+            couponDiscount = 0;
+            
+            document.getElementById('coupon-code').value = '';
+            document.getElementById('coupon-error').style.display = 'none';
+            document.getElementById('coupon-success').style.display = 'none';
+            document.getElementById('coupon-discount-line').style.display = 'none';
+            
+            updateTotal();
+            showToast('Sucesso', 'Cupom removido', 'success');
+        }
+
+        function updateTotal() {
+            const subtotal = <?= isset($subtotal) ? $subtotal : 0 ?>;
+            const shippingText = document.getElementById('shipping-cost').textContent;
+            let shipping = 0;
+            
+            if (shippingText !== 'A calcular' && !shippingText.includes('Grátis')) {
+                shipping = parseFloat(shippingText.replace('R$ ', '').replace(',', '.'));
+            }
+            
+            const total = subtotal + shipping - couponDiscount;
+            document.getElementById('total-cost').textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+        }
+
+        function finalizeOrder() {
+            showConfirmModal(
+                'Finalizar Pedido',
+                'Confirma a finalização do pedido? Esta ação não pode ser desfeita.',
+                () => {
+                    const requestData = {};
+                    if (appliedCoupon) {
+                        requestData.coupon_code = appliedCoupon.code;
+                    }
+
+                    fetch('<?= base_url("products/finalize_order") ?>', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify(requestData)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast('Sucesso', data.message, 'success');
+                            setTimeout(() => {
+                                window.location.href = '<?= base_url("products") ?>';
+                            }, 2000);
+                        } else {
+                            showToast('Erro', data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro:', error);
+                        showToast('Erro', 'Erro ao finalizar pedido. Tente novamente.', 'error');
+                    });
+                }
+            );
+        }
+
+        function removeItem(itemKey) {
+            showConfirmModal(
+                'Confirmar Remoção',
+                'Tem certeza que deseja remover este item do carrinho?',
+                () => {
+                    fetch('<?= base_url("products/remove_from_cart/") ?>' + itemKey, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast('Sucesso', data.message, 'success');
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            showToast('Erro', data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro:', error);
+                        showToast('Erro', 'Erro ao remover item. Tente novamente.', 'error');
+                    });
+                }
+            );
         }
 
         function clearCart() {
-            if (!confirm('Tem certeza que deseja limpar todo o carrinho?')) {
-                return;
-            }
-
-            fetch('<?= base_url("products/clear_cart") ?>', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
+            showConfirmModal(
+                'Limpar Carrinho',
+                'Tem certeza que deseja remover todos os itens do carrinho?',
+                () => {
+                    fetch('<?= base_url("products/clear_cart") ?>', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast('Sucesso', data.message, 'success');
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            showToast('Erro', data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro:', error);
+                        showToast('Erro', 'Erro ao limpar carrinho. Tente novamente.', 'error');
+                    });
                 }
-            })
-            .then(response => {
-                if (response.ok) {
-                    showToast('Sucesso', 'Carrinho limpo com sucesso!', 'success');
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    showToast('Erro', 'Erro ao limpar carrinho', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-                showToast('Erro', 'Erro ao limpar carrinho. Tente novamente.', 'error');
-            });
+            );
         }
 
         // Calcula frete ao pressionar Enter no CEP
-        cepInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                calculateShipping();
-            }
-        });
+        if (cepInput) {
+            cepInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    calculateShipping();
+                }
+            });
+        }
+
+        // Aplica cupom ao pressionar Enter
+        const couponCodeInput = document.getElementById('coupon-code');
+        if (couponCodeInput) {
+            couponCodeInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    applyCoupon();
+                }
+            });
+        }
 
         // Animação suave ao carregar
         document.addEventListener('DOMContentLoaded', function() {
