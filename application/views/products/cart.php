@@ -16,9 +16,9 @@
                     <div class="card-body p-5">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h1 class="card-title h2 mb-0">
-                                <i class="bi bi-cart3"></i> Carrinho de Compras
+                                <i class="bi bi-cart3 text-primary"></i> Carrinho de Compras
                             </h1>
-                            <a href="<?= base_url() ?>" class="btn btn-outline-secondary">
+                            <a href="<?= base_url('products') ?>" class="btn btn-outline-primary">
                                 <i class="bi bi-arrow-left"></i> Continuar Comprando
                             </a>
                         </div>
@@ -28,7 +28,7 @@
                                 <i class="bi bi-cart-x h1 text-muted"></i>
                                 <h3 class="mt-3">Seu carrinho está vazio</h3>
                                 <p class="text-muted">Adicione produtos para começar suas compras!</p>
-                                <a href="<?= base_url() ?>" class="btn btn-primary">
+                                <a href="<?= base_url('products') ?>" class="btn btn-primary">
                                     <i class="bi bi-shop"></i> Ver Produtos
                                 </a>
                             </div>
@@ -196,12 +196,16 @@
                     const subtotal = <?= $subtotal ?>;
                     let shippingCost = 0;
 
-                    if (subtotal < 50) {
-                        shippingCost = 15;
-                    } else if (subtotal < 100) {
-                        shippingCost = 20;
-                    } else {
+                    // Regras de frete:
+                    // Entre R$52,00 e R$166,59: R$15,00
+                    // Maior que R$200,00: Grátis
+                    // Outros valores: R$20,00
+                    if (subtotal >= 200.00) {
                         shippingCost = 0; // Grátis
+                    } else if (subtotal >= 52.00 && subtotal <= 166.59) {
+                        shippingCost = 15.00;
+                    } else {
+                        shippingCost = 20.00;
                     }
 
                     const total = subtotal + shippingCost;

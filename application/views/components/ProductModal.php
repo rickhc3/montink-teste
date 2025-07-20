@@ -37,11 +37,37 @@ const ProductModal = {
             />
         </base-modal>
     `,
+    mounted() {
+        console.log('ProductModal.mounted() - modalId:', this.modalId);
+    },
     methods: {
         show(product = null, isEdit = false) {
+            console.log('ProductModal.show() chamado:', { product, isEdit });
+            
+            // Validação do produto
+            if (isEdit && (!product || !product.id)) {
+                console.error('ProductModal.show() - produto inválido para edição:', product);
+                utils.showToast('Erro', 'Dados do produto inválidos para edição', 'error');
+                return;
+            }
+            
             this.currentProduct = product;
             this.isEdit = isEdit;
-            this.$refs.baseModal.show();
+            
+            console.log('ProductModal.show() - dados configurados:', {
+                currentProduct: this.currentProduct,
+                isEdit: this.isEdit,
+                productId: product ? product.id : 'N/A'
+            });
+            
+            // Aguarda um pouco para garantir que o DOM foi atualizado
+            this.$nextTick(() => {
+                console.log('ProductModal.show() - dados antes de abrir modal:', {
+                    currentProduct: this.currentProduct,
+                    isEdit: this.isEdit
+                });
+                this.$refs.baseModal.show();
+            });
         },
         
         hide() {
@@ -49,11 +75,13 @@ const ProductModal = {
         },
         
         handleSuccess(data) {
+            console.log('ProductModal.handleSuccess() chamado:', data);
             this.hide();
             this.$emit('success', data);
         },
         
         handleCancel() {
+            console.log('ProductModal.handleCancel() chamado');
             this.hide();
             this.$emit('cancel');
         }

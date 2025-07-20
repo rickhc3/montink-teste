@@ -110,20 +110,40 @@ const ProductForm = {
         </form>
     `,
     mounted() {
+        console.log('ProductForm.mounted() - produto:', this.product, 'isEdit:', this.isEdit);
         this.initializeForm();
         this.setupPriceMask();
+    },
+    
+    watch: {
+        product: {
+            handler(newProduct) {
+                console.log('ProductForm.watch.product - novo produto:', newProduct);
+                this.initializeForm();
+            },
+            immediate: true
+        },
+        isEdit: {
+            handler(newIsEdit) {
+                console.log('ProductForm.watch.isEdit - novo valor:', newIsEdit);
+                this.initializeForm();
+            },
+            immediate: true
+        }
     },
     methods: {
         initializeForm() {
             if (this.isEdit && this.product) {
-                this.formData.name = this.product.name;
-                this.formData.price = utils.formatPrice(this.product.price);
+                this.formData.name = this.product.name || '';
+                this.formData.price = this.product.price || '';
                 
-                if (this.product.stock) {
+                if (this.product.stock && Array.isArray(this.product.stock)) {
                     this.formData.variations = this.product.stock.map(item => ({
-                        name: item.variation,
-                        quantity: item.quantity
+                        name: item.variation || '',
+                        quantity: parseInt(item.quantity) || 0
                     }));
+                } else {
+                    this.formData.variations = [{ name: '', quantity: 0 }];
                 }
             } else {
                 this.formData = {
@@ -137,7 +157,11 @@ const ProductForm = {
         setupPriceMask() {
             this.$nextTick(() => {
                 if (this.$refs.priceInput) {
+                    console.log('ProductForm.setupPriceMask() - configurando máscara para:', this.$refs.priceInput);
                     this.priceMask = utils.applyPriceMask(this.$refs.priceInput);
+                    console.log('ProductForm.setupPriceMask() - máscara criada:', this.priceMask);
+                } else {
+                    console.error('ProductForm.setupPriceMask() - priceInput ref não encontrado');
                 }
             });
         },
@@ -156,8 +180,15 @@ const ProductForm = {
             this.loading = true;
             
             try {
-                const priceValue = this.priceMask ? this.priceMask.value : this.formData.price;
-                const numericPrice = utils.parsePrice(priceValue);
+                // Processa o preço
+                let priceValue = this.formData.price;
+                
+                // Remove formatação se for string
+                if (typeof priceValue === 'string') {
+                    priceValue = priceValue.replace(/[^\d,]/g, '').replace(',', '.');
+                }
+                
+                const numericPrice = parseFloat(priceValue) || 0;
                 
                 const submitData = {
                     name: this.formData.name,
@@ -168,12 +199,12 @@ const ProductForm = {
                     submitData.id = this.product.id;
                     submitData.stock = this.formData.variations.map(v => ({
                         variation: v.name,
-                        quantity: parseInt(v.quantity)
+                        quantity: parseInt(v.quantity) || 0
                     }));
                 } else {
                     submitData.variations = this.formData.variations.map(v => ({
                         name: v.name,
-                        quantity: parseInt(v.quantity)
+                        quantity: parseInt(v.quantity) || 0
                     }));
                 }
                 
@@ -187,7 +218,6 @@ const ProductForm = {
                     utils.showToast('Erro', response.data.message, 'error');
                 }
             } catch (error) {
-                console.error('Erro:', error);
                 utils.showToast('Erro', 'Erro ao salvar produto', 'error');
             } finally {
                 this.loading = false;

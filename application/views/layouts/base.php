@@ -32,6 +32,90 @@
             transform: translateX(100%);
             opacity: 0;
         }
+        
+        /* Estilos customizados */
+        .hover-lift {
+            transition: all 0.3s ease;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+        
+        .rounded-4 {
+            border-radius: 1rem !important;
+        }
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+        }
+        
+        .card {
+            transition: all 0.3s ease;
+        }
+        
+        .badge {
+            font-size: 0.75rem;
+        }
+        
+        .btn {
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            border-radius: 0.5rem;
+        }
+        
+        .modal-content {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+        }
+        
+        .form-control, .form-select {
+            border-radius: 0.5rem;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+        
+        /* Estilos para tabela */
+        .table-hover tbody tr:hover {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+        
+        .btn-check:checked + .btn {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: #fff;
+        }
+        
+        .btn-group .btn {
+            border-radius: 0.375rem;
+        }
+        
+        .btn-group .btn:not(:last-child) {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        
+        .btn-group .btn:not(:first-child) {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -53,7 +137,7 @@
     </div>
 
     <!-- Scripts - Ordem importante -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/imask"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -71,39 +155,109 @@
         window.utils = {
             // Formatar preço
             formatPrice: (value) => {
-                return new Intl.NumberFormat('pt-BR', {
+                console.log('utils.formatPrice() - valor recebido:', value, 'tipo:', typeof value);
+                
+                if (value === null || value === undefined || value === '') {
+                    console.log('utils.formatPrice() - valor vazio ou nulo');
+                    return '';
+                }
+                
+                // Converte para número se for string
+                let numericValue = value;
+                if (typeof value === 'string') {
+                    numericValue = parseFloat(value);
+                    if (isNaN(numericValue)) {
+                        console.log('utils.formatPrice() - string não é número válido');
+                        return '';
+                    }
+                }
+                
+                console.log('utils.formatPrice() - valor numérico:', numericValue);
+                const result = new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL'
-                }).format(value);
+                }).format(numericValue);
+                
+                console.log('utils.formatPrice() - resultado formatado:', result);
+                return result;
             },
             
             // Parsear preço
             parsePrice: (value) => {
-                if (typeof value === 'string') {
-                    return parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.'));
+                console.log('utils.parsePrice() - valor recebido:', value, 'tipo:', typeof value);
+                
+                if (value === null || value === undefined || value === '') {
+                    console.log('utils.parsePrice() - valor vazio ou nulo');
+                    return 0;
                 }
-                return value;
+                
+                if (typeof value === 'number') {
+                    console.log('utils.parsePrice() - já é número:', value);
+                    return value;
+                }
+                
+                if (typeof value === 'string') {
+                    // Remove tudo exceto números, vírgulas e pontos
+                    let cleanValue = value.replace(/[^\d,.]/g, '');
+                    console.log('utils.parsePrice() - valor limpo:', cleanValue);
+                    
+                    // Se tem vírgula e ponto, assume que vírgula é separador decimal
+                    if (cleanValue.includes(',') && cleanValue.includes('.')) {
+                        cleanValue = cleanValue.replace('.', '').replace(',', '.');
+                    } else if (cleanValue.includes(',')) {
+                        cleanValue = cleanValue.replace(',', '.');
+                    }
+                    
+                    console.log('utils.parsePrice() - valor final para parse:', cleanValue);
+                    const result = parseFloat(cleanValue);
+                    console.log('utils.parsePrice() - resultado:', result);
+                    return isNaN(result) ? 0 : result;
+                }
+                
+                console.log('utils.parsePrice() - tipo não suportado, retornando 0');
+                return 0;
             },
             
             // Aplicar máscara de preço
             applyPriceMask: (element) => {
-                return IMask(element, {
-                    mask: Number,
-                    scale: 2,
-                    thousandsSeparator: '.',
-                    radix: ',',
-                    mapToRadix: ['.'],
-                    normalizeZeros: true,
-                    padFractionalZeros: false,
-                    min: 0,
-                    max: 999999.99,
-                    parser: function (str) {
-                        return str.replace(/\D/g, '');
-                    },
-                    formatter: function (str) {
-                        return str.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-                    }
-                });
+                console.log('utils.applyPriceMask() - aplicando máscara para elemento:', element);
+                
+                if (!element) {
+                    console.error('utils.applyPriceMask() - elemento não fornecido');
+                    return null;
+                }
+                
+                try {
+                    const mask = IMask(element, {
+                        mask: Number,
+                        scale: 2,
+                        thousandsSeparator: '.',
+                        radix: ',',
+                        mapToRadix: ['.'],
+                        normalizeZeros: true,
+                        padFractionalZeros: false,
+                        min: 0,
+                        max: 999999.99,
+                        parser: function (str) {
+                            console.log('utils.applyPriceMask() - parser chamado com:', str);
+                            const result = str.replace(/\D/g, '');
+                            console.log('utils.applyPriceMask() - parser resultado:', result);
+                            return result;
+                        },
+                        formatter: function (str) {
+                            console.log('utils.applyPriceMask() - formatter chamado com:', str);
+                            const result = str.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                            console.log('utils.applyPriceMask() - formatter resultado:', result);
+                            return result;
+                        }
+                    });
+                    
+                    console.log('utils.applyPriceMask() - máscara criada com sucesso:', mask);
+                    return mask;
+                } catch (error) {
+                    console.error('utils.applyPriceMask() - erro ao criar máscara:', error);
+                    return null;
+                }
             },
             
             // Mostrar toast

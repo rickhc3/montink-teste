@@ -8,6 +8,20 @@ class Products extends CI_Controller {
         $this->load->database();
         $this->load->library('session');
     }
+    
+    /**
+     * Lê dados JSON do corpo da requisição ou fallback para form-data
+     */
+    private function get_request_data() {
+        $input = json_decode(trim(file_get_contents('php://input')), true);
+        
+        if (is_array($input)) {
+            return $input;
+        } else {
+            // Fallback para form-data
+            return $this->input->post();
+        }
+    }
 
     public function index() {
         // Busca todos os produtos
@@ -15,7 +29,22 @@ class Products extends CI_Controller {
         
         // Para cada produto, busca o estoque
         foreach ($products as $product) {
-            $product->stock = $this->db->where('product_id', $product->id)->get('stock')->result();
+            $stock_items = $this->db->where('product_id', $product->id)->get('stock')->result();
+            
+            // Converte as quantidades para números inteiros
+            foreach ($stock_items as $stock) {
+                $stock->quantity = (int)$stock->quantity;
+            }
+            
+            $product->stock = $stock_items;
+            
+            // Debug: log dos dados do produto
+            log_message('debug', 'Produto ID: ' . $product->id . ', Nome: ' . $product->name . ', Stock: ' . json_encode($stock_items));
+            
+            // Verifica se o ID está presente
+            if (!isset($product->id) || empty($product->id)) {
+                log_message('error', 'ERRO: Produto sem ID - ' . json_encode($product));
+            }
         }
         
         $data['products'] = $products;
@@ -28,7 +57,14 @@ class Products extends CI_Controller {
         
         // Para cada produto, busca o estoque
         foreach ($products as $product) {
-            $product->stock = $this->db->where('product_id', $product->id)->get('stock')->result();
+            $stock_items = $this->db->where('product_id', $product->id)->get('stock')->result();
+            
+            // Converte as quantidades para números inteiros
+            foreach ($stock_items as $stock) {
+                $stock->quantity = (int)$stock->quantity;
+            }
+            
+            $product->stock = $stock_items;
         }
         
         $this->output->set_content_type('application/json')
@@ -52,7 +88,14 @@ class Products extends CI_Controller {
         }
 
         $data['product'] = $this->db->where('id', $id)->get('products')->row();
-        $data['stock'] = $this->db->where('product_id', $id)->get('stock')->result();
+        $stock_items = $this->db->where('product_id', $id)->get('stock')->result();
+        
+        // Converte as quantidades para números inteiros
+        foreach ($stock_items as $stock) {
+            $stock->quantity = (int)$stock->quantity;
+        }
+        
+        $data['stock'] = $stock_items;
         
         if (!$data['product']) {
             redirect('products');
@@ -62,7 +105,13 @@ class Products extends CI_Controller {
     }
 
     public function update() {
-        $id = $this->input->post('id');
+        $input = $this->get_request_data();
+        
+        $id = $input['id'] ?? null;
+        $name = $input['name'] ?? null;
+        $price = $input['price'] ?? null;
+        $stock_data = $input['stock'] ?? [];
+        
         if (!$id) {
             if ($this->input->get_request_header('X-Requested-With') === 'XMLHttpRequest') {
                 $this->output->set_content_type('application/json')
@@ -72,10 +121,6 @@ class Products extends CI_Controller {
             }
             return;
         }
-
-        $name = $this->input->post('name');
-        $price = $this->input->post('price');
-        $stock_data = $this->input->post('stock');
 
         try {
             // Atualiza o produto
@@ -120,9 +165,11 @@ class Products extends CI_Controller {
     }
 
     public function store() {
-        $name = $this->input->post('name');
-        $price = $this->input->post('price');
-        $variations = $this->input->post('variations');
+        $input = $this->get_request_data();
+        
+        $name = $input['name'] ?? null;
+        $price = $input['price'] ?? null;
+        $variations = $input['variations'] ?? [];
 
         try {
             $this->db->insert('products', [
@@ -159,9 +206,11 @@ class Products extends CI_Controller {
     }
 
     public function add_to_cart() {
-        $product_id = $this->input->post('product_id');
-        $variation = $this->input->post('variation');
-        $quantity = (int)$this->input->post('quantity');
+        $input = $this->get_request_data();
+        
+        $product_id = $input['product_id'] ?? null;
+        $variation = $input['variation'] ?? null;
+        $quantity = (int)($input['quantity'] ?? 0);
 
         // Verifica se há estoque
         $stock = $this->db->where('product_id', $product_id)
@@ -349,13 +398,61 @@ class Products extends CI_Controller {
             return;
         }
 
-        $stock = $this->db->where('product_id', $product_id)->get('stock')->result();
+        $stock_items = $this->db->where('product_id', $product_id)->get('stock')->result();
+        
+        // Converte as quantidades para números inteiros
+        foreach ($stock_items as $stock) {
+            $stock->quantity = (int)$stock->quantity;
+        }
         
         $this->output->set_content_type('application/json')
                      ->set_output(json_encode([
                          'success' => true,
-                         'stock' => $stock
+                         'stock' => $stock_items
                      ]));
+    }
+
+    public function debug_stock($product_id = null) {
+        if (!$product_id) {
+            echo "ID do produto é obrigatório";
+            return;
+        }
+
+        echo "<h3>Debug do Produto ID: $product_id</h3>";
+        
+        // Busca o produto
+        $product = $this->db->where('id', $product_id)->get('products')->row();
+        if ($product) {
+            echo "<p><strong>Produto:</strong> {$product->name}</p>";
+        }
+        
+        // Busca o estoque
+        $stock_items = $this->db->where('product_id', $product_id)->get('stock')->result();
+        echo "<h4>Estoque:</h4>";
+        echo "<ul>";
+        $total = 0;
+        foreach ($stock_items as $stock) {
+            $quantity = (int)$stock->quantity;
+            $total += $quantity;
+            echo "<li>Variação: {$stock->variation} - Quantidade: {$stock->quantity} (tipo: " . gettype($stock->quantity) . ")</li>";
+        }
+        echo "</ul>";
+        echo "<p><strong>Total calculado:</strong> $total</p>";
+        
+        // Testa a função JavaScript
+        echo "<h4>Teste JavaScript:</h4>";
+        echo "<script>";
+        echo "const stock = " . json_encode($stock_items) . ";";
+        echo "console.log('Stock data:', stock);";
+        echo "const total = stock.reduce((sum, item) => sum + parseInt(item.quantity), 0);";
+        echo "console.log('Total calculado:', total);";
+        echo "</script>";
+        
+        // Debug completo do produto com estoque
+        $product_with_stock = $product;
+        $product_with_stock->stock = $stock_items;
+        echo "<h4>Dados completos do produto (JSON):</h4>";
+        echo "<pre>" . json_encode($product_with_stock, JSON_PRETTY_PRINT) . "</pre>";
     }
 
     public function delete($id = null) {
@@ -373,8 +470,10 @@ class Products extends CI_Controller {
     }
 
     public function calculate_shipping() {
-        $cep = $this->input->post('cep');
-        $subtotal = (float)$this->input->post('subtotal');
+        $input = $this->get_request_data();
+        
+        $cep = $input['cep'] ?? null;
+        $subtotal = (float)($input['subtotal'] ?? 0);
 
         // Calcula frete baseado no subtotal
         if ($subtotal >= 200.00) {
