@@ -537,6 +537,17 @@
             });
             
             const bsModal = new bootstrap.Modal(modal);
+            
+            // Remove aria-hidden quando o modal for mostrado para evitar conflitos de acessibilidade
+            modal.addEventListener('shown.bs.modal', function() {
+                modal.removeAttribute('aria-hidden');
+            });
+            
+            // Restaura aria-hidden quando o modal for escondido
+            modal.addEventListener('hidden.bs.modal', function() {
+                modal.setAttribute('aria-hidden', 'true');
+            });
+            
             bsModal.show();
         }
 
@@ -573,7 +584,16 @@
                     subtotal: subtotal
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Resposta não é JSON válido');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     // Mostra endereço se disponível
@@ -622,7 +642,16 @@
                 },
                 body: `code=${encodeURIComponent(couponCode)}&subtotal=${subtotal}`
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Resposta não é JSON válido');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.valid) {
                     appliedCoupon = data.coupon;
@@ -693,7 +722,16 @@
                         },
                         body: JSON.stringify(requestData)
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        const contentType = response.headers.get('content-type');
+                        if (!contentType || !contentType.includes('application/json')) {
+                            throw new Error('Resposta não é JSON válido');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         if (data.success) {
                             showToast('Sucesso', data.message, 'success');
@@ -723,7 +761,16 @@
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        const contentType = response.headers.get('content-type');
+                        if (!contentType || !contentType.includes('application/json')) {
+                            throw new Error('Resposta não é JSON válido');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         if (data.success) {
                             showToast('Sucesso', data.message, 'success');
@@ -754,7 +801,16 @@
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        const contentType = response.headers.get('content-type');
+                        if (!contentType || !contentType.includes('application/json')) {
+                            throw new Error('Resposta não é JSON válido');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         if (data.success) {
                             showToast('Sucesso', data.message, 'success');

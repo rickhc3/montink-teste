@@ -339,11 +339,153 @@ class Products extends CI_Controller {
     }
 
     public function checkout() {
-        $data['cart'] = $this->session->userdata('cart') ?: [];
+        $cart = $this->session->userdata('cart');
+        
+        if (empty($cart)) {
+            redirect('products/cart');
+        }
+        
+        // Calcular valores
+        $subtotal = 0;
+        foreach ($cart as $item) {
+            $subtotal += $item['price'] * $item['quantity'];
+        }
+        
+        $shipping = 20.00; // Valor fixo de frete por enquanto
+        $total = $subtotal + $shipping;
+        
+        $data['cart'] = $cart;
+        $data['subtotal'] = $subtotal;
+        $data['shipping'] = $shipping;
+        $data['total'] = $total;
+        
         $this->load->view('products/checkout', $data);
+    }
+    
+    public function checkout_process() {
+        $this->load->helper('form');
+        $this->load->library('form_validation');
+        
+        // Validação dos dados
+        $this->form_validation->set_rules('customer_name', 'Nome', 'required|trim');
+        $this->form_validation->set_rules('customer_email', 'E-mail', 'required|valid_email|trim');
+        $this->form_validation->set_rules('customer_phone', 'Telefone', 'required|trim');
+        $this->form_validation->set_rules('customer_cep', 'CEP', 'required|trim');
+        $this->form_validation->set_rules('customer_address', 'Endereço', 'required|trim');
+        $this->form_validation->set_rules('customer_number', 'Número', 'required|trim');
+        $this->form_validation->set_rules('customer_neighborhood', 'Bairro', 'required|trim');
+        $this->form_validation->set_rules('customer_city', 'Cidade', 'required|trim');
+        $this->form_validation->set_rules('customer_state', 'Estado', 'required|trim');
+        
+        if ($this->form_validation->run() == FALSE) {
+            echo json_encode([
+                'success' => false,
+                'message' => validation_errors()
+            ]);
+            return;
+        }
+        
+        $cart = $this->session->userdata('cart');
+        
+        if (empty($cart)) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Carrinho vazio'
+            ]);
+            return;
+        }
+        
+        // Calcular valores
+        $subtotal = 0;
+        foreach ($cart as $item) {
+            $subtotal += $item['price'] * $item['quantity'];
+        }
+        
+        $shipping = 20.00;
+        $discount = 0;
+        
+        // Verificar cupom se aplicado
+        $coupon_code = $this->input->post('coupon_code');
+        if (!empty($coupon_code)) {
+            $coupon_result = $this->validate_coupon_internal($coupon_code, $subtotal);
+            if ($coupon_result['valid']) {
+                $discount = $coupon_result['discount'];
+            }
+        }
+        
+        $total = $subtotal + $shipping - $discount;
+        
+        // Dados do cliente
+        $customer_data = [
+            'name' => $this->input->post('customer_name'),
+            'email' => $this->input->post('customer_email'),
+            'phone' => $this->input->post('customer_phone'),
+            'cep' => $this->input->post('customer_cep'),
+            'address' => $this->input->post('customer_address'),
+            'number' => $this->input->post('customer_number'),
+            'complement' => $this->input->post('customer_complement'),
+            'neighborhood' => $this->input->post('customer_neighborhood'),
+            'city' => $this->input->post('customer_city'),
+            'state' => $this->input->post('customer_state')
+        ];
+        
+        // Dados do pedido
+        $order_data = [
+            'customer_name' => $customer_data['name'],
+            'customer_email' => $customer_data['email'],
+            'customer_phone' => $customer_data['phone'],
+            'customer_cep' => $customer_data['cep'],
+            'customer_address' => $customer_data['address'],
+            'customer_number' => $customer_data['number'],
+            'customer_complement' => $customer_data['complement'],
+            'customer_neighborhood' => $customer_data['neighborhood'],
+            'customer_city' => $customer_data['city'],
+            'customer_state' => $customer_data['state'],
+            'subtotal' => $subtotal,
+            'shipping' => $shipping,
+            'discount' => $discount,
+            'total' => $total,
+            'coupon_code' => $coupon_code,
+            'created_at' => date('Y-m-d H:i:s')
+        ];
+        
+        try {
+            // Simular salvamento do pedido (aqui você salvaria no banco)
+            $order_id = rand(1000, 9999); // ID simulado
+            $order_data['id'] = $order_id;
+            
+            // Enviar e-mail de confirmação
+            $email_sent = $this->send_order_confirmation_email($order_data, $cart);
+            
+            if ($email_sent) {
+                // Limpar carrinho
+                $this->session->unset_userdata('cart');
+                
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Pedido finalizado com sucesso!',
+                    'order_id' => $order_id
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Pedido processado, mas houve erro no envio do e-mail de confirmação.'
+                ]);
+            }
+            
+        } catch (Exception $e) {
+            log_message('error', 'Erro ao processar checkout: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro interno do servidor. Tente novamente.'
+            ]);
+        }
     }
 
     public function finalize_order() {
+        // Limpar qualquer output anterior
+        ob_clean();
+        
         $input = $this->get_request_data();
         $cart = $this->session->userdata('cart') ?: [];
         
@@ -427,7 +569,7 @@ class Products extends CI_Controller {
         
         if ($result['success']) {
             // Enviar e-mail de confirmação
-            $this->send_order_confirmation_email($result['order_id'], $order_data, $cart_items);
+            $this->send_order_confirmation_email($order_data, $cart_items);
             
             // Limpar carrinho
             $this->session->unset_userdata('cart');
@@ -460,25 +602,79 @@ class Products extends CI_Controller {
     /**
      * Enviar e-mail de confirmação do pedido
      */
-    private function send_order_confirmation_email($order_id, $order_data, $cart_items) {
+    private function send_order_confirmation_email($order_data, $cart_items) {
         try {
+            // Configurar SMTP para Mailpit
+            $config = [
+                'protocol' => 'smtp',
+                'smtp_host' => 'localhost',
+                'smtp_port' => 1025,
+                'smtp_user' => '',
+                'smtp_pass' => '',
+                'smtp_crypto' => '',
+                'mailtype' => 'html',
+                'charset' => 'utf-8',
+                'newline' => "\r\n"
+            ];
+            
+            $this->email->initialize($config);
+            
+            // Preparar dados para o template
+            $order = (object) [
+                'id' => $order_data['id'],
+                'customer_name' => $order_data['customer_name'],
+                'customer_email' => $order_data['customer_email'],
+                'customer_phone' => $order_data['customer_phone'],
+                'customer_cep' => $order_data['customer_cep'],
+                'customer_address' => $order_data['customer_address'],
+                'customer_number' => $order_data['customer_number'],
+                'customer_complement' => $order_data['customer_complement'] ?? '',
+                'customer_neighborhood' => $order_data['customer_neighborhood'],
+                'customer_city' => $order_data['customer_city'],
+                'customer_state' => $order_data['customer_state'],
+                'subtotal' => $order_data['subtotal'],
+                'shipping' => $order_data['shipping'],
+                'discount' => $order_data['discount'],
+                'total' => $order_data['total'],
+                'created_at' => $order_data['created_at']
+            ];
+            
+            // Preparar itens com estrutura correta
+            $items = [];
+            foreach ($cart_items as $item) {
+                $items[] = [
+                    'name' => $item['name'],
+                    'variation' => $item['variation'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'total' => $item['price'] * $item['quantity']
+                ];
+            }
+            
             $message = $this->load->view('emails/order_confirmation', [
-                'order_id' => $order_id,
-                'order' => (object)$order_data,
-                'items' => $cart_items
+                'order_id' => $order_data['id'],
+                'order' => $order,
+                'items' => $items
             ], true);
 
             $this->email->clear();
             $this->email->from('noreply@montink.com', 'Montink');
             $this->email->to($order_data['customer_email']);
-            $this->email->subject('Confirmação do Pedido #' . $order_id);
+            $this->email->subject('Confirmação do Pedido #' . $order_data['id']);
             $this->email->message($message);
             
-            if (!$this->email->send()) {
-                log_message('error', 'Falha ao enviar email de confirmação do pedido: ' . $this->email->print_debugger());
+            $result = $this->email->send();
+            
+            if ($result) {
+                log_message('info', 'E-mail de confirmação enviado para: ' . $order_data['customer_email']);
+            } else {
+                log_message('error', 'Falha ao enviar e-mail de confirmação: ' . $this->email->print_debugger());
             }
+            
+            return $result;
         } catch (Exception $e) {
             log_message('error', 'Erro de email: ' . $e->getMessage());
+            return false;
         }
     }
 
@@ -486,6 +682,9 @@ class Products extends CI_Controller {
      * Validar cupom via AJAX
      */
     public function validate_coupon() {
+        // Limpar qualquer output anterior
+        ob_clean();
+        
         $code = $this->input->post('code');
         $subtotal = $this->input->post('subtotal');
 
@@ -495,21 +694,52 @@ class Products extends CI_Controller {
             return;
         }
 
-        $result = $this->Coupon_model->validate_coupon($code, $subtotal);
+        $result = $this->validate_coupon_internal($code, $subtotal);
         
-        if ($result['valid']) {
-            $discount = $this->Coupon_model->calculate_discount($result['coupon'], $subtotal);
-            $this->output->set_content_type('application/json')
-                         ->set_output(json_encode([
-                             'valid' => true,
-                             'discount' => $discount,
-                             'discount_formatted' => 'R$ ' . number_format($discount, 2, ',', '.'),
-                             'coupon' => $result['coupon']
-                         ]));
-        } else {
-            $this->output->set_content_type('application/json')
-                         ->set_output(json_encode($result));
+        $this->output->set_content_type('application/json')
+                     ->set_output(json_encode($result));
+    }
+    
+    /**
+     * Método interno para validar cupom
+     */
+    private function validate_coupon_internal($coupon_code, $subtotal) {
+        // Simulação de cupons válidos
+        $valid_coupons = [
+            'DESCONTO10' => ['type' => 'percentage', 'value' => 10, 'min_value' => 50],
+            'FRETE20' => ['type' => 'fixed', 'value' => 20, 'min_value' => 30],
+            'BEMVINDO' => ['type' => 'percentage', 'value' => 15, 'min_value' => 100]
+        ];
+        
+        if (!isset($valid_coupons[$coupon_code])) {
+            return [
+                'valid' => false,
+                'message' => 'Cupom inválido'
+            ];
         }
+        
+        $coupon = $valid_coupons[$coupon_code];
+        
+        if ($subtotal < $coupon['min_value']) {
+            return [
+                'valid' => false,
+                'message' => 'Valor mínimo para este cupom: R$ ' . number_format($coupon['min_value'], 2, ',', '.')
+            ];
+        }
+        
+        $discount = 0;
+        if ($coupon['type'] === 'percentage') {
+            $discount = ($subtotal * $coupon['value']) / 100;
+        } else {
+            $discount = $coupon['value'];
+        }
+        
+        return [
+            'valid' => true,
+            'coupon' => $coupon,
+            'discount' => $discount,
+            'discount_formatted' => 'R$ ' . number_format($discount, 2, ',', '.')
+        ];
     }
 
     public function get_stock($product_id = null) {
@@ -591,6 +821,9 @@ class Products extends CI_Controller {
     }
 
     public function calculate_shipping() {
+        // Limpar qualquer output anterior
+        ob_clean();
+        
         $input = $this->get_request_data();
         
         $cep = $input['cep'] ?? null;
