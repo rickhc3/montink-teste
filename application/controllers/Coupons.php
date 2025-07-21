@@ -139,6 +139,111 @@ class Coupons extends CI_Controller {
     }
 
     /**
+     * Get coupon data via AJAX
+     */
+    public function get($id) {
+        $coupon = $this->Coupon_model->get_coupon($id);
+        
+        if ($coupon) {
+            echo json_encode([
+                'success' => true,
+                'coupon' => $coupon
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Cupom não encontrado'
+            ]);
+        }
+    }
+
+    /**
+     * Store new coupon via AJAX
+     */
+    public function store() {
+        $this->form_validation->set_rules('code', 'Código', 'required|min_length[3]|max_length[50]');
+        $this->form_validation->set_rules('discount_type', 'Tipo de Desconto', 'required|in_list[percentage,fixed]');
+        $this->form_validation->set_rules('discount_value', 'Valor do Desconto', 'required|numeric|greater_than[0]');
+        $this->form_validation->set_rules('min_amount', 'Valor Mínimo', 'numeric');
+        $this->form_validation->set_rules('max_uses', 'Máximo de Usos', 'integer');
+        $this->form_validation->set_rules('valid_from', 'Válido de', 'required');
+        $this->form_validation->set_rules('valid_until', 'Válido até', 'required');
+
+        if ($this->form_validation->run()) {
+            $data = [
+                'code' => $this->input->post('code'),
+                'discount_type' => $this->input->post('discount_type'),
+                'discount_value' => $this->input->post('discount_value'),
+                'min_amount' => $this->input->post('min_amount') ?: 0,
+                'max_uses' => $this->input->post('max_uses') ?: null,
+                'valid_from' => $this->input->post('valid_from'),
+                'valid_until' => $this->input->post('valid_until'),
+                'is_active' => $this->input->post('is_active') ? true : false
+            ];
+
+            $result = $this->Coupon_model->create_coupon($data);
+            
+            if ($result['success']) {
+                $this->session->set_flashdata('success', 'Cupom criado com sucesso!');
+                redirect('coupons');
+            } else {
+                $this->session->set_flashdata('error', $result['message']);
+                redirect('coupons');
+            }
+        } else {
+            $this->session->set_flashdata('error', validation_errors());
+            redirect('coupons');
+        }
+    }
+
+    /**
+     * Update coupon via AJAX
+     */
+    public function update($id) {
+        $coupon = $this->Coupon_model->get_coupon($id);
+        
+        if (!$coupon) {
+            $this->session->set_flashdata('error', 'Cupom não encontrado');
+            redirect('coupons');
+            return;
+        }
+
+        $this->form_validation->set_rules('code', 'Código', 'required|min_length[3]|max_length[50]');
+        $this->form_validation->set_rules('discount_type', 'Tipo de Desconto', 'required|in_list[percentage,fixed]');
+        $this->form_validation->set_rules('discount_value', 'Valor do Desconto', 'required|numeric|greater_than[0]');
+        $this->form_validation->set_rules('min_amount', 'Valor Mínimo', 'numeric');
+        $this->form_validation->set_rules('max_uses', 'Máximo de Usos', 'integer');
+        $this->form_validation->set_rules('valid_from', 'Válido de', 'required');
+        $this->form_validation->set_rules('valid_until', 'Válido até', 'required');
+
+        if ($this->form_validation->run()) {
+            $update_data = [
+                'code' => $this->input->post('code'),
+                'discount_type' => $this->input->post('discount_type'),
+                'discount_value' => $this->input->post('discount_value'),
+                'min_amount' => $this->input->post('min_amount') ?: 0,
+                'max_uses' => $this->input->post('max_uses') ?: null,
+                'valid_from' => $this->input->post('valid_from'),
+                'valid_until' => $this->input->post('valid_until'),
+                'is_active' => $this->input->post('is_active') ? true : false
+            ];
+
+            $result = $this->Coupon_model->update_coupon($id, $update_data);
+            
+            if ($result['success']) {
+                $this->session->set_flashdata('success', 'Cupom atualizado com sucesso!');
+                redirect('coupons');
+            } else {
+                $this->session->set_flashdata('error', $result['message']);
+                redirect('coupons');
+            }
+        } else {
+            $this->session->set_flashdata('error', validation_errors());
+            redirect('coupons');
+        }
+    }
+
+    /**
      * Validate coupon via AJAX
      */
     public function validate() {

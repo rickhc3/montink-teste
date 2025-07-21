@@ -288,8 +288,11 @@ class Products extends CI_Controller {
                              ->set_output(json_encode(['success' => false, 'message' => 'Item não especificado']));
                 return;
             }
-            redirect('products/cart');
+            redirect('cart');
         }
+        
+        // Decodifica a chave do item que pode vir codificada da URL
+        $item_key = urldecode($item_key);
         
         $cart = $this->session->userdata('cart') ?: [];
         
@@ -310,7 +313,7 @@ class Products extends CI_Controller {
             }
         }
 
-        redirect('products/cart');
+        redirect('cart');
     }
 
     public function clear_cart() {
@@ -321,7 +324,7 @@ class Products extends CI_Controller {
             $this->output->set_content_type('application/json')
                          ->set_output(json_encode(['success' => true, 'message' => 'Carrinho limpo com sucesso']));
         } else {
-            redirect('products/cart');
+            redirect('cart');
         }
     }
 
@@ -342,7 +345,7 @@ class Products extends CI_Controller {
         $cart = $this->session->userdata('cart');
         
         if (empty($cart)) {
-            redirect('products/cart');
+            redirect('cart');
         }
         
         // Calcular valores
@@ -362,7 +365,7 @@ class Products extends CI_Controller {
         $this->load->view('products/checkout', $data);
     }
     
-    public function checkout_process() {
+    public function finalize_order() {
         $this->load->helper('form');
         $this->load->library('form_validation');
         
@@ -378,38 +381,51 @@ class Products extends CI_Controller {
         $this->form_validation->set_rules('customer_state', 'Estado', 'required|trim');
         
         if ($this->form_validation->run() == FALSE) {
-            echo json_encode([
-                'success' => false,
-                'message' => validation_errors()
-            ]);
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode([
+                             'success' => false,
+                             'message' => validation_errors()
+                         ]));
             return;
         }
         
         $cart = $this->session->userdata('cart');
         
         if (empty($cart)) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Carrinho vazio'
-            ]);
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode([
+                             'success' => false,
+                             'message' => 'Carrinho vazio'
+                         ]));
             return;
         }
         
-        // Calcular valores
+        // Calcular subtotal
         $subtotal = 0;
         foreach ($cart as $item) {
             $subtotal += $item['price'] * $item['quantity'];
         }
         
-        $shipping = 20.00;
-        $discount = 0;
+        // Obter valores da sessão (mais seguro)
+        $shipping = $this->session->userdata('shipping_cost') ?? $this->calculate_shipping_cost($subtotal);
+        $discount = $this->session->userdata('coupon_discount') ?? 0;
+        $coupon_code = $this->session->userdata('coupon_code') ?? '';
         
-        // Verificar cupom se aplicado
-        $coupon_code = $this->input->post('coupon_code');
-        if (!empty($coupon_code)) {
+        // Verificar se o cupom ainda é válido com o subtotal atual
+        if ($coupon_code && $this->session->userdata('coupon_subtotal') != $subtotal) {
             $coupon_result = $this->validate_coupon_internal($coupon_code, $subtotal);
             if ($coupon_result['valid']) {
                 $discount = $coupon_result['discount'];
+                // Atualizar sessão com novo desconto
+                $this->session->set_userdata([
+                    'coupon_discount' => $discount,
+                    'coupon_subtotal' => $subtotal
+                ]);
+            } else {
+                // Cupom não é mais válido
+                $discount = 0;
+                $coupon_code = '';
+                $this->session->unset_userdata(['coupon_code', 'coupon_discount', 'coupon_subtotal']);
             }
         }
         
@@ -454,137 +470,192 @@ class Products extends CI_Controller {
             $order_id = rand(1000, 9999); // ID simulado
             $order_data['id'] = $order_id;
             
+            // Incrementar contador de uso do cupom se aplicado
+            if ($coupon_code) {
+                $this->Coupon_model->increment_usage($coupon_code);
+            }
+            
+            // Reduzir estoque dos produtos vendidos
+            $this->reduce_stock($cart);
+            
             // Enviar e-mail de confirmação
             $email_sent = $this->send_order_confirmation_email($order_data, $cart);
             
-            if ($email_sent) {
-                // Limpar carrinho
-                $this->session->unset_userdata('cart');
-                
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Pedido finalizado com sucesso!',
-                    'order_id' => $order_id
-                ]);
-            } else {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Pedido processado, mas houve erro no envio do e-mail de confirmação.'
-                ]);
-            }
-            
-        } catch (Exception $e) {
-            log_message('error', 'Erro ao processar checkout: ' . $e->getMessage());
-            echo json_encode([
-                'success' => false,
-                'message' => 'Erro interno do servidor. Tente novamente.'
+            // Limpar carrinho e dados de checkout
+            $this->session->unset_userdata([
+                'cart',
+                'shipping_cep',
+                'shipping_cost',
+                'shipping_subtotal',
+                'coupon_code',
+                'coupon_discount',
+                'coupon_subtotal'
             ]);
-        }
-    }
-
-    public function finalize_order() {
-        // Limpar qualquer output anterior
-        ob_clean();
-        
-        $input = $this->get_request_data();
-        $cart = $this->session->userdata('cart') ?: [];
-        
-        if (empty($cart)) {
-            $this->output->set_content_type('application/json')
-                         ->set_output(json_encode(['success' => false, 'message' => 'Carrinho vazio']));
-            return;
-        }
-
-        // Para finalização simples do carrinho, vamos usar dados padrão
-        // Em uma implementação completa, estes dados viriam de um formulário de checkout
-        $customer_data = [
-            'customer_name' => 'Cliente Padrão',
-            'customer_email' => 'cliente@exemplo.com',
-            'customer_phone' => '',
-            'shipping_address' => 'Endereço a definir',
-            'shipping_city' => 'Cidade a definir',
-            'shipping_state' => 'Estado a definir',
-            'shipping_zipcode' => '00000-000'
-        ];
-
-        // Calcular subtotal
-        $subtotal = 0;
-        $cart_items = [];
-        foreach ($cart as $item) {
-            $subtotal += $item['price'] * $item['quantity'];
-            
-            // Verificar estoque
-            $stock = $this->db->where('product_id', $item['product_id'])
-                              ->where('variation', $item['variation'])
-                              ->get('stock')->row();
-            
-            if (!$stock || $stock->quantity < $item['quantity']) {
-                $this->output->set_content_type('application/json')
-                             ->set_output(json_encode([
-                                 'success' => false, 
-                                 'message' => "Estoque insuficiente para {$item['name']} - {$item['variation']}. Disponível: " . ($stock ? $stock->quantity : 0)
-                             ]));
-                return;
-            }
-
-            $cart_items[] = [
-                'product_id' => $item['product_id'],
-                'product_name' => $item['name'],
-                'variation' => $item['variation'],
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['price']
-            ];
-        }
-
-        // Validar e aplicar cupom se fornecido
-        $discount_amount = 0;
-        $coupon_code = null;
-        if (!empty($input['coupon_code'])) {
-            $coupon_validation = $this->Coupon_model->validate_coupon($input['coupon_code'], $subtotal);
-            if ($coupon_validation['valid']) {
-                $discount_amount = $this->Coupon_model->calculate_discount($coupon_validation['coupon'], $subtotal);
-                $coupon_code = $input['coupon_code'];
-            } else {
-                $this->output->set_content_type('application/json')
-                             ->set_output(json_encode(['success' => false, 'message' => $coupon_validation['message']]));
-                return;
-            }
-        }
-
-        // Calcular frete
-        $shipping_cost = $this->calculate_shipping_cost($subtotal);
-        $total = $subtotal + $shipping_cost - $discount_amount;
-
-        // Dados do pedido
-        $order_data = array_merge($customer_data, [
-            'subtotal' => $subtotal,
-            'shipping_cost' => $shipping_cost,
-            'discount_amount' => $discount_amount,
-            'total' => $total,
-            'coupon_code' => $coupon_code
-        ]);
-
-        // Criar pedido
-        $result = $this->Order_model->create_order($order_data, $cart_items);
-        
-        if ($result['success']) {
-            // Enviar e-mail de confirmação
-            $this->send_order_confirmation_email($order_data, $cart_items);
-            
-            // Limpar carrinho
-            $this->session->unset_userdata('cart');
             
             $this->output->set_content_type('application/json')
                          ->set_output(json_encode([
-                             'success' => true, 
+                             'success' => true,
                              'message' => 'Pedido finalizado com sucesso!',
-                             'order_id' => $result['order_id']
+                             'order_id' => $order_id,
+                             'email_sent' => $email_sent
                          ]));
-        } else {
+            
+        } catch (Exception $e) {
+            log_message('error', 'Erro ao processar checkout: ' . $e->getMessage());
             $this->output->set_content_type('application/json')
-                         ->set_output(json_encode(['success' => false, 'message' => $result['message']]));
+                         ->set_output(json_encode([
+                             'success' => false,
+                             'message' => 'Erro interno do servidor. Tente novamente.'
+                         ]));
         }
     }
+        
+    public function checkout_process() {
+        $this->load->helper('form');
+        $this->load->library('form_validation');
+        
+        // Validação dos dados
+        $this->form_validation->set_rules('customer_name', 'Nome', 'required|trim');
+        $this->form_validation->set_rules('customer_email', 'E-mail', 'required|valid_email|trim');
+        $this->form_validation->set_rules('customer_phone', 'Telefone', 'required|trim');
+        $this->form_validation->set_rules('customer_cep', 'CEP', 'required|trim');
+        $this->form_validation->set_rules('customer_address', 'Endereço', 'required|trim');
+        $this->form_validation->set_rules('customer_number', 'Número', 'required|trim');
+        $this->form_validation->set_rules('customer_neighborhood', 'Bairro', 'required|trim');
+        $this->form_validation->set_rules('customer_city', 'Cidade', 'required|trim');
+        $this->form_validation->set_rules('customer_state', 'Estado', 'required|trim');
+        
+        if ($this->form_validation->run() == FALSE) {
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode([
+                             'success' => false,
+                             'message' => validation_errors()
+                         ]));
+            return;
+        }
+        
+        $cart = $this->session->userdata('cart');
+        
+        if (empty($cart)) {
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode([
+                             'success' => false,
+                             'message' => 'Carrinho vazio'
+                         ]));
+            return;
+        }
+        
+        // Calcular subtotal
+        $subtotal = 0;
+        foreach ($cart as $item) {
+            $subtotal += $item['price'] * $item['quantity'];
+        }
+        
+        // Obter valores da sessão (mais seguro)
+        $shipping = $this->session->userdata('shipping_cost') ?? $this->calculate_shipping_cost($subtotal);
+        $discount = $this->session->userdata('coupon_discount') ?? 0;
+        $coupon_code = $this->session->userdata('coupon_code') ?? '';
+        
+        // Verificar se o cupom ainda é válido com o subtotal atual
+        if ($coupon_code && $this->session->userdata('coupon_subtotal') != $subtotal) {
+            $coupon_result = $this->validate_coupon_internal($coupon_code, $subtotal);
+            if ($coupon_result['valid']) {
+                $discount = $coupon_result['discount'];
+                // Atualizar sessão com novo desconto
+                $this->session->set_userdata([
+                    'coupon_discount' => $discount,
+                    'coupon_subtotal' => $subtotal
+                ]);
+            } else {
+                // Cupom não é mais válido
+                $discount = 0;
+                $coupon_code = '';
+                $this->session->unset_userdata(['coupon_code', 'coupon_discount', 'coupon_subtotal']);
+            }
+        }
+        
+        $total = $subtotal + $shipping - $discount;
+        
+        // Dados do cliente
+        $customer_data = [
+            'name' => $this->input->post('customer_name'),
+            'email' => $this->input->post('customer_email'),
+            'phone' => $this->input->post('customer_phone'),
+            'cep' => $this->input->post('customer_cep'),
+            'address' => $this->input->post('customer_address'),
+            'number' => $this->input->post('customer_number'),
+            'complement' => $this->input->post('customer_complement'),
+            'neighborhood' => $this->input->post('customer_neighborhood'),
+            'city' => $this->input->post('customer_city'),
+            'state' => $this->input->post('customer_state')
+        ];
+        
+        // Dados do pedido
+        $order_data = [
+            'customer_name' => $customer_data['name'],
+            'customer_email' => $customer_data['email'],
+            'customer_phone' => $customer_data['phone'],
+            'customer_cep' => $customer_data['cep'],
+            'customer_address' => $customer_data['address'],
+            'customer_number' => $customer_data['number'],
+            'customer_complement' => $customer_data['complement'],
+            'customer_neighborhood' => $customer_data['neighborhood'],
+            'customer_city' => $customer_data['city'],
+            'customer_state' => $customer_data['state'],
+            'subtotal' => $subtotal,
+            'shipping' => $shipping,
+            'discount' => $discount,
+            'total' => $total,
+            'coupon_code' => $coupon_code,
+            'created_at' => date('Y-m-d H:i:s')
+        ];
+        
+        try {
+            // Simular salvamento do pedido (aqui você salvaria no banco)
+            $order_id = rand(1000, 9999); // ID simulado
+            $order_data['id'] = $order_id;
+            
+            // Incrementar contador de uso do cupom se aplicado
+            if ($coupon_code) {
+                $this->Coupon_model->increment_usage($coupon_code);
+            }
+            
+            // Reduzir estoque dos produtos vendidos
+            $this->reduce_stock($cart);
+            
+            // Enviar e-mail de confirmação
+            $email_sent = $this->send_order_confirmation_email($order_data, $cart);
+            
+            // Limpar carrinho e dados de checkout
+            $this->session->unset_userdata([
+                'cart',
+                'shipping_cep',
+                'shipping_cost',
+                'shipping_subtotal',
+                'coupon_code',
+                'coupon_discount',
+                'coupon_subtotal'
+            ]);
+            
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode([
+                             'success' => true,
+                             'message' => 'Pedido finalizado com sucesso!',
+                             'order_id' => $order_id,
+                             'email_sent' => $email_sent
+                         ]));
+            
+        } catch (Exception $e) {
+            log_message('error', 'Erro ao processar checkout: ' . $e->getMessage());
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode([
+                             'success' => false,
+                             'message' => 'Erro interno do servidor. Tente novamente.'
+                         ]));
+        }
+    }
+
+
 
     /**
      * Calcular custo do frete
@@ -600,6 +671,145 @@ class Products extends CI_Controller {
     }
 
     /**
+     * Armazenar dados de frete na sessão
+     */
+    public function store_shipping_data() {
+        $cep = $this->input->post('cep');
+        $subtotal = $this->input->post('subtotal');
+        
+        if (!$cep || !$subtotal) {
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode(['success' => false, 'message' => 'Dados inválidos']));
+            return;
+        }
+        
+        $shipping_cost = $this->calculate_shipping_cost($subtotal);
+        
+        // Armazenar na sessão
+        $this->session->set_userdata([
+            'shipping_cep' => $cep,
+            'shipping_cost' => $shipping_cost,
+            'shipping_subtotal' => $subtotal
+        ]);
+        
+        $this->output->set_content_type('application/json')
+                     ->set_output(json_encode([
+                         'success' => true,
+                         'shipping_cost' => $shipping_cost
+                     ]));
+    }
+    
+    /**
+     * Armazenar dados de cupom na sessão
+     */
+    public function store_coupon_data() {
+        $coupon_code = $this->input->post('coupon_code');
+        $subtotal = $this->input->post('subtotal');
+        
+        if (!$coupon_code || !$subtotal) {
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode(['success' => false, 'message' => 'Dados inválidos']));
+            return;
+        }
+        
+        $coupon_result = $this->validate_coupon_internal($coupon_code, $subtotal);
+        
+        if ($coupon_result['valid']) {
+            // Armazenar na sessão
+            $this->session->set_userdata([
+                'coupon_code' => $coupon_code,
+                'coupon_discount' => $coupon_result['discount'],
+                'coupon_subtotal' => $subtotal
+            ]);
+            
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode([
+                             'success' => true,
+                             'valid' => true,
+                             'discount' => $coupon_result['discount'],
+                             'discount_formatted' => 'R$ ' . number_format($coupon_result['discount'], 2, ',', '.'),
+                             'coupon' => $coupon_result['coupon']
+                         ]));
+        } else {
+            // Limpar cupom da sessão se inválido
+            $this->session->unset_userdata(['coupon_code', 'coupon_discount', 'coupon_subtotal']);
+            
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode([
+                             'success' => true,
+                             'valid' => false,
+                             'message' => $coupon_result['message']
+                         ]));
+        }
+    }
+    
+    /**
+     * Remover cupom da sessão
+     */
+    public function remove_coupon() {
+        $this->session->unset_userdata(['coupon_code', 'coupon_discount', 'coupon_subtotal']);
+        $this->output->set_content_type('application/json')
+                     ->set_output(json_encode(['success' => true]));
+    }
+    
+    /**
+     * Obter dados de checkout da sessão
+     */
+    public function get_checkout_data() {
+        $cart = $this->session->userdata('cart') ?? [];
+        
+        if (empty($cart)) {
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode(['success' => false, 'message' => 'Carrinho vazio']));
+            return;
+        }
+        
+        // Calcular subtotal
+        $subtotal = 0;
+        foreach ($cart as $item) {
+            $subtotal += $item['price'] * $item['quantity'];
+        }
+        
+        // Obter dados da sessão
+        $shipping_cost = $this->session->userdata('shipping_cost') ?? $this->calculate_shipping_cost($subtotal);
+        $coupon_discount = $this->session->userdata('coupon_discount') ?? 0;
+        $coupon_code = $this->session->userdata('coupon_code') ?? '';
+        
+        // Verificar se o cupom ainda é válido com o subtotal atual
+        if ($coupon_code && $this->session->userdata('coupon_subtotal') != $subtotal) {
+            $coupon_result = $this->validate_coupon_internal($coupon_code, $subtotal);
+            if ($coupon_result['valid']) {
+                $coupon_discount = $coupon_result['discount'];
+                $this->session->set_userdata([
+                    'coupon_discount' => $coupon_discount,
+                    'coupon_subtotal' => $subtotal
+                ]);
+            } else {
+                // Cupom não é mais válido, remover da sessão
+                $this->session->unset_userdata(['coupon_code', 'coupon_discount', 'coupon_subtotal']);
+                $coupon_discount = 0;
+                $coupon_code = '';
+            }
+        }
+        
+        $total = $subtotal + $shipping_cost - $coupon_discount;
+        
+        $this->output->set_content_type('application/json')
+                     ->set_output(json_encode([
+                         'success' => true,
+                         'subtotal' => $subtotal,
+                         'shipping_cost' => $shipping_cost,
+                         'coupon_discount' => $coupon_discount,
+                         'coupon_code' => $coupon_code,
+                         'total' => $total,
+                         'subtotal_formatted' => 'R$ ' . number_format($subtotal, 2, ',', '.'),
+                         'shipping_formatted' => $shipping_cost == 0 ? 'Grátis' : 'R$ ' . number_format($shipping_cost, 2, ',', '.'),
+                         'discount_formatted' => 'R$ ' . number_format($coupon_discount, 2, ',', '.'),
+                         'total_formatted' => 'R$ ' . number_format($total, 2, ',', '.')
+                     ]));
+    }
+
+    /**
      * Enviar e-mail de confirmação do pedido
      */
     private function send_order_confirmation_email($order_data, $cart_items) {
@@ -607,7 +817,7 @@ class Products extends CI_Controller {
             // Configurar SMTP para Mailpit
             $config = [
                 'protocol' => 'smtp',
-                'smtp_host' => 'localhost',
+                'smtp_host' => 'ci3_mailpit',
                 'smtp_port' => 1025,
                 'smtp_user' => '',
                 'smtp_pass' => '',
@@ -621,7 +831,7 @@ class Products extends CI_Controller {
             
             // Preparar dados para o template
             $order = (object) [
-                'id' => $order_data['id'],
+                'id' => $order_data['id'] ?? 'N/A',
                 'customer_name' => $order_data['customer_name'],
                 'customer_email' => $order_data['customer_email'],
                 'customer_phone' => $order_data['customer_phone'],
@@ -633,21 +843,21 @@ class Products extends CI_Controller {
                 'customer_city' => $order_data['customer_city'],
                 'customer_state' => $order_data['customer_state'],
                 'subtotal' => $order_data['subtotal'],
-                'shipping' => $order_data['shipping'],
-                'discount' => $order_data['discount'],
+                'shipping' => $order_data['shipping_cost'] ?? $order_data['shipping'] ?? 0,
+                'discount' => $order_data['discount_amount'] ?? $order_data['discount'] ?? 0,
                 'total' => $order_data['total'],
-                'created_at' => $order_data['created_at']
+                'created_at' => $order_data['created_at'] ?? date('Y-m-d H:i:s')
             ];
             
             // Preparar itens com estrutura correta
             $items = [];
             foreach ($cart_items as $item) {
                 $items[] = [
-                    'name' => $item['name'],
-                    'variation' => $item['variation'],
+                    'name' => $item['product_name'] ?? $item['name'],
+                    'variation' => $item['variation'] ?? '',
                     'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'total' => $item['price'] * $item['quantity']
+                    'price' => $item['unit_price'] ?? $item['price'],
+                    'total' => ($item['unit_price'] ?? $item['price']) * $item['quantity']
                 ];
             }
             
@@ -682,9 +892,6 @@ class Products extends CI_Controller {
      * Validar cupom via AJAX
      */
     public function validate_coupon() {
-        // Limpar qualquer output anterior
-        ob_clean();
-        
         $code = $this->input->post('code');
         $subtotal = $this->input->post('subtotal');
 
@@ -704,35 +911,18 @@ class Products extends CI_Controller {
      * Método interno para validar cupom
      */
     private function validate_coupon_internal($coupon_code, $subtotal) {
-        // Simulação de cupons válidos
-        $valid_coupons = [
-            'DESCONTO10' => ['type' => 'percentage', 'value' => 10, 'min_value' => 50],
-            'FRETE20' => ['type' => 'fixed', 'value' => 20, 'min_value' => 30],
-            'BEMVINDO' => ['type' => 'percentage', 'value' => 15, 'min_value' => 100]
-        ];
+        // Usar o modelo de cupom para validação real
+        $result = $this->Coupon_model->validate_coupon($coupon_code, $subtotal);
         
-        if (!isset($valid_coupons[$coupon_code])) {
+        if (!$result['valid']) {
             return [
                 'valid' => false,
-                'message' => 'Cupom inválido'
+                'message' => $result['message']
             ];
         }
         
-        $coupon = $valid_coupons[$coupon_code];
-        
-        if ($subtotal < $coupon['min_value']) {
-            return [
-                'valid' => false,
-                'message' => 'Valor mínimo para este cupom: R$ ' . number_format($coupon['min_value'], 2, ',', '.')
-            ];
-        }
-        
-        $discount = 0;
-        if ($coupon['type'] === 'percentage') {
-            $discount = ($subtotal * $coupon['value']) / 100;
-        } else {
-            $discount = $coupon['value'];
-        }
+        $coupon = $result['coupon'];
+        $discount = $this->Coupon_model->calculate_discount($coupon, $subtotal);
         
         return [
             'valid' => true,
@@ -821,9 +1011,6 @@ class Products extends CI_Controller {
     }
 
     public function calculate_shipping() {
-        // Limpar qualquer output anterior
-        ob_clean();
-        
         $input = $this->get_request_data();
         
         $cep = $input['cep'] ?? null;
@@ -871,5 +1058,33 @@ class Products extends CI_Controller {
         }
 
         return $data;
+    }
+    
+    /**
+     * Reduzir estoque dos produtos vendidos
+     */
+    private function reduce_stock($cart_items) {
+        foreach ($cart_items as $item) {
+            $product_id = $item['product_id'];
+            $variation = $item['variation'];
+            $quantity_sold = $item['quantity'];
+            
+            // Buscar o item de estoque específico
+            $stock_item = $this->db->where('product_id', $product_id)
+                                  ->where('variation', $variation)
+                                  ->get('stock')
+                                  ->row();
+            
+            if ($stock_item) {
+                $new_quantity = max(0, $stock_item->quantity - $quantity_sold);
+                
+                // Atualizar o estoque
+                $this->db->where('product_id', $product_id)
+                         ->where('variation', $variation)
+                         ->update('stock', ['quantity' => $new_quantity]);
+                
+                log_message('info', "Estoque reduzido - Produto: {$product_id}, Variação: {$variation}, Quantidade vendida: {$quantity_sold}, Novo estoque: {$new_quantity}");
+            }
+        }
     }
 }

@@ -1,25 +1,4 @@
 <div id="app" class="min-vh-100" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
-    <!-- Header -->
-    <!-- Navbar elegante -->
-    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
-        <div class="container">
-            <a class="navbar-brand" href="<?= base_url('products') ?>">
-                <i class="bi bi-shop text-primary"></i> Montink
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a href="<?= base_url('coupons') ?>" class="btn btn-outline-secondary me-2">
-                    <i class="bi bi-tag"></i> Cupons
-                </a>
-                <a href="<?= base_url('products/cart') ?>" class="btn btn-outline-primary me-2">
-                    <i class="bi bi-cart3"></i> Carrinho
-                </a>
-                <button type="button" class="btn btn-primary" @click="showCreateModal">
-                    <i class="bi bi-plus-circle"></i> Novo Produto
-                </button>
-            </div>
-        </div>
-    </nav>
-    
     <!-- Container principal -->
     <div class="container py-4">
         <div class="row justify-content-center">
@@ -38,18 +17,11 @@
                                     {{ products.length }} {{ products.length === 1 ? 'produto' : 'produtos' }}
                                 </span>
                                 
-                                <!-- Toggle de Visualização -->
-                                <div class="btn-group" role="group">
-                                    <input type="radio" class="btn-check" name="viewType" id="viewTable" autocomplete="off" v-model="viewType" value="table">
-                                    <label class="btn btn-outline-light" for="viewTable">
-                                        <i class="bi bi-list-ul"></i>
-                                    </label>
-                                    
-                                    <input type="radio" class="btn-check" name="viewType" id="viewCards" autocomplete="off" v-model="viewType" value="cards">
-                                    <label class="btn btn-outline-light" for="viewCards">
-                                        <i class="bi bi-grid-3x3-gap"></i>
-                                    </label>
-                                </div>
+
+                                
+                                <button type="button" class="btn btn-primary" @click="showCreateModal">
+                                    <i class="bi bi-plus-circle"></i> Novo Produto
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -70,7 +42,7 @@
                         </div>
     
                         <!-- Visualização em Tabela -->
-                        <div v-else-if="viewType === 'table'" class="card">
+                        <div v-else class="card">
                             <div class="table-responsive">
                                 <table class="table table-hover mb-0">
                                     <thead class="table-light">
@@ -141,69 +113,7 @@
                             </div>
                         </div>
     
-                        <!-- Visualização em Cards -->
-                        <div v-else class="row g-4">
-                            <div v-for="product in products" :key="product.id" class="col-lg-4 col-md-6">
-                                <div class="card h-100">
-                                    <div class="card-body p-4">
-                                        <!-- Header do Card -->
-                                        <div class="d-flex justify-content-between align-items-start mb-3">
-                                            <div class="flex-grow-1">
-                                                <h5 class="card-title fw-bold text-dark mb-1">{{ product.name }}</h5>
-                                                <p class="text-muted small mb-0">ID: #{{ product.id }}</p>
-                                            </div>
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm btn-light rounded-pill" type="button" data-bs-toggle="dropdown">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </button>
-                                                <ul class="dropdown-menu">
-                                                    <li><a class="dropdown-item" href="#" @click="showEditModal(product)">
-                                                        <i class="bi bi-pencil me-2"></i>Editar
-                                                    </a></li>
-                                                    <li><a class="dropdown-item text-danger" href="#" @click="deleteProduct(product.id)">
-                                                        <i class="bi bi-trash me-2"></i>Excluir
-                                                    </a></li>
-                                                </ul>
-                                            </div>
-                                        </div>
-    
-                                        <!-- Preço -->
-                                        <div class="mb-3">
-                                            <span class="h4 fw-bold text-success">{{ formatPrice(product.price) }}</span>
-                                        </div>
-    
-                                        <!-- Estoque -->
-                                        <div class="mb-4">
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <span class="small text-muted">Estoque Total</span>
-                                                <span class="badge" :class="getTotalStock(product) > 10 ? 'bg-success' : getTotalStock(product) > 0 ? 'bg-warning' : 'bg-danger'">
-                                                    {{ getTotalStock(product) }} unidades
-                                                </span>
-                                            </div>
-                                            <div class="small text-muted">
-                                                <div v-for="stock in product.stock" :key="stock.variation" class="d-flex justify-content-between">
-                                                    <span>{{ stock.variation }}:</span>
-                                                    <span>{{ stock.quantity }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-    
-                                        <!-- Ações -->
-                                        <div class="d-grid">
-                                            <button 
-                                                type="button" 
-                                                class="btn btn-success"
-                                                @click="showBuyModal(product)"
-                                                :disabled="getTotalStock(product) === 0"
-                                            >
-                                                <i class="bi bi-cart-plus me-2"></i>
-                                                {{ getTotalStock(product) === 0 ? 'Sem Estoque' : 'Adicionar ao Carrinho' }}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
             </div>
@@ -321,8 +231,7 @@ window.addEventListener('load', function() {
                 return {
                     products: products,
                     loading: false,
-                    currentBuyProduct: null,
-                    viewType: 'table', // 'table' ou 'cards' - tabela é o padrão
+                    currentBuyProduct: null
                 };
             },
 

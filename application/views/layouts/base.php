@@ -321,6 +321,32 @@
     </style>
 </head>
 <body>
+    <!-- Navbar Global -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="<?= base_url('products') ?>">
+                <i class="bi bi-shop text-primary"></i> Montink
+            </a>
+            <div class="navbar-nav ms-auto">
+                <?php 
+                $current_url = uri_string();
+                $is_products = (strpos($current_url, 'products') !== false && strpos($current_url, 'cart') === false);
+                $is_coupons = strpos($current_url, 'coupons') !== false;
+                $is_cart = strpos($current_url, 'cart') !== false;
+                ?>
+                <a href="<?= base_url('products') ?>" class="btn <?= $is_products ? 'btn-primary' : 'btn-outline-secondary' ?> me-2">
+                    <i class="bi bi-box"></i> Produtos
+                </a>
+                <a href="<?= base_url('coupons') ?>" class="btn <?= $is_coupons ? 'btn-primary' : 'btn-outline-secondary' ?> me-2">
+                    <i class="bi bi-tag"></i> Cupons
+                </a>
+                <a href="<?= base_url('cart') ?>" class="btn <?= $is_cart ? 'btn-primary' : 'btn-outline-primary' ?>">
+                    <i class="bi bi-cart3"></i> Carrinho
+                </a>
+            </div>
+        </div>
+    </nav>
+
     <div id="app" v-cloak>
         <?= $content ?? '' ?>
     </div>

@@ -64,11 +64,18 @@ $route['products/delete/(:num)'] = 'products/delete/$1';
 $route['products/get_stock/(:num)'] = 'products/get_stock/$1';
 $route['products/get_products'] = 'products/get_products';
 $route['products/add_to_cart'] = 'products/add_to_cart';
-$route['products/cart'] = 'products/cart';
+$route['cart'] = 'products/cart';
 $route['products/remove_from_cart/(:any)'] = 'products/remove_from_cart/$1';
 $route['products/clear_cart'] = 'products/clear_cart';
 $route['products/checkout'] = 'products/checkout';
 $route['products/finalize_order'] = 'products/finalize_order';
 $route['products/calculate_shipping'] = 'products/calculate_shipping';
 $route['products/test'] = 'products/test';
+
+// Rotas para cupons
+$route['coupons'] = 'coupons/index';
+$route['coupons/create'] = 'coupons/create';
+$route['coupons/edit/(:num)'] = 'coupons/edit/$1';
+$route['coupons/delete/(:num)'] = 'coupons/delete/$1';
+$route['coupons/validate'] = 'coupons/validate';
 

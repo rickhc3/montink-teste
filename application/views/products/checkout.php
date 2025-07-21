@@ -116,7 +116,7 @@
 </head>
 <body>
     <div class="checkout-container">
-        <a href="<?= base_url('products/cart') ?>" class="btn-back">
+        <a href="<?= base_url('cart') ?>" class="btn-back">
             <i class="fas fa-arrow-left"></i> Voltar ao Carrinho
         </a>
         
@@ -400,7 +400,7 @@
             btn.querySelector('.loading').style.display = 'inline';
             btn.disabled = true;
             
-            fetch('<?= base_url('products/checkout_process') ?>', {
+            fetch('<?= base_url('products/finalize_order') ?>', {
                 method: 'POST',
                 body: formData
             })

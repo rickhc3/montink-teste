@@ -235,20 +235,20 @@
                     <span class="price">R$ <?= number_format($order->subtotal, 2, ',', '.') ?></span>
                 </div>
                 
-                <?php if ($order->discount_amount > 0): ?>
+                <?php if (isset($order->discount) && $order->discount > 0): ?>
                 <div class="total-row">
-                    <span>Desconto (<?= $order->coupon_code ?>):</span>
-                    <span class="price">- R$ <?= number_format($order->discount_amount, 2, ',', '.') ?></span>
+                    <span>Desconto<?php if (isset($order->coupon_code) && !empty($order->coupon_code)): ?> (Cupom: <?= $order->coupon_code ?>)<?php endif; ?>:</span>
+                    <span class="price">- R$ <?= number_format($order->discount, 2, ',', '.') ?></span>
                 </div>
                 <?php endif; ?>
                 
                 <div class="total-row">
                     <span>Frete:</span>
                     <span class="price">
-                        <?php if ($order->shipping_cost == 0): ?>
+                        <?php if (isset($order->shipping) && $order->shipping == 0): ?>
                             <span style="color: #28a745;">GRÁTIS</span>
                         <?php else: ?>
-                            R$ <?= number_format($order->shipping_cost, 2, ',', '.') ?>
+                            R$ <?= number_format($order->shipping ?? 0, 2, ',', '.') ?>
                         <?php endif; ?>
                     </span>
                 </div>
