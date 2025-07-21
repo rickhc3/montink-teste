@@ -14,7 +14,7 @@ class Order_model extends CI_Model {
     public function create_order($order_data, $cart_items) {
         $this->db->trans_start();
 
-        // Insert order
+
         $order_insert_data = [
             'customer_name' => $order_data['customer_name'],
             'customer_email' => $order_data['customer_email'],
@@ -47,7 +47,7 @@ class Order_model extends CI_Model {
             ];
             $this->db->insert('order_items', $item_data);
 
-            // Update stock
+    
             if ($item['variation']) {
                 $this->db->where('product_id', $item['product_id']);
                 $this->db->where('variation', $item['variation']);

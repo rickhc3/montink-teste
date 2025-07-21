@@ -81,29 +81,21 @@ const ProductsTable = {
         
         getTotalStock(product) {
             if (!product.stock || !Array.isArray(product.stock)) {
-                console.log('Stock não encontrado para produto:', product.id);
                 return 0;
             }
             
-            console.log('Calculando estoque para produto:', product.id, 'Stock:', product.stock);
-            
             const total = product.stock.reduce((total, stock) => {
-                // Garante que a quantidade seja um número
                 const quantity = parseInt(stock.quantity) || 0;
-                console.log(`Variação ${stock.variation}: ${stock.quantity} (${typeof stock.quantity}) -> ${quantity}`);
                 return total + quantity;
             }, 0);
             
-            console.log('Total calculado:', total);
             return total;
         },
         
         editProduct(product) {
-            console.log('ProductsTable.editProduct() chamado com produto:', product);
             
             // Validação do produto
             if (!product || !product.id) {
-                console.error('ProductsTable.editProduct() - produto inválido:', product);
                 return;
             }
             
@@ -111,11 +103,9 @@ const ProductsTable = {
         },
         
         buyProduct(product) {
-            console.log('ProductsTable.buyProduct() chamado com produto:', product);
             
             // Validação do produto
             if (!product || !product.id) {
-                console.error('ProductsTable.buyProduct() - produto inválido:', product);
                 return;
             }
             
@@ -129,4 +119,4 @@ const ProductsTable = {
         }
     }
 };
-</script> 
+</script>

@@ -32,7 +32,7 @@ class Webhook extends CI_Controller {
         $new_status = $data['status'];
         $notes = $data['notes'] ?? 'Atualização via webhook';
 
-        // Validate status
+
         $valid_statuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
         if (!in_array($new_status, $valid_statuses)) {
             http_response_code(400);
@@ -40,7 +40,7 @@ class Webhook extends CI_Controller {
             return;
         }
 
-        // Get order
+
         $order = $this->Order_model->get_order($order_id);
         if (!$order) {
             http_response_code(404);
@@ -112,7 +112,7 @@ class Webhook extends CI_Controller {
             $this->email->message($message);
             
             if (!$this->email->send()) {
-                log_message('error', 'Falha ao enviar email de atualização de status: ' . $this->email->print_debugger());
+                // Falha ao enviar email de atualização de status
             }
         } catch (Exception $e) {
             log_message('error', 'Erro de email: ' . $e->getMessage());
@@ -135,7 +135,7 @@ class Webhook extends CI_Controller {
             $this->email->message($message);
             
             if (!$this->email->send()) {
-                log_message('error', 'Falha ao enviar email de cancelamento: ' . $this->email->print_debugger());
+                // Falha ao enviar email de cancelamento
             }
         } catch (Exception $e) {
             log_message('error', 'Erro de email: ' . $e->getMessage());

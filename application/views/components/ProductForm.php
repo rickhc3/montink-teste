@@ -112,7 +112,6 @@ const ProductForm = {
         </form>
     `,
     mounted() {
-        console.log('ProductForm.mounted() - produto:', this.product, 'isEdit:', this.isEdit);
         this.initializeForm();
         this.setupPriceMask();
     },
@@ -120,14 +119,12 @@ const ProductForm = {
     watch: {
         product: {
             handler(newProduct) {
-                console.log('ProductForm.watch.product - novo produto:', newProduct);
                 this.initializeForm();
             },
             immediate: true
         },
         isEdit: {
             handler(newIsEdit) {
-                console.log('ProductForm.watch.isEdit - novo valor:', newIsEdit);
                 this.initializeForm();
             },
             immediate: true
@@ -160,16 +157,12 @@ const ProductForm = {
         setupPriceMask() {
             this.$nextTick(() => {
                 if (this.$refs.priceInput) {
-                    console.log('ProductForm.setupPriceMask() - configurando máscara para:', this.$refs.priceInput);
                     this.priceMask = utils.applyPriceMask(this.$refs.priceInput);
-                    console.log('ProductForm.setupPriceMask() - máscara criada:', this.priceMask);
                     
                     // Atualiza o valor da máscara com o valor parseado
                     if (this.priceMask && this.formData.price) {
                         this.priceMask.value = utils.parsePrice(this.formData.price);
                     }
-                } else {
-                    console.error('ProductForm.setupPriceMask() - priceInput ref não encontrado');
                 }
             });
         },

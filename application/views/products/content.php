@@ -204,9 +204,7 @@
 <script>
 // Aguarda o carregamento completo da página
 window.addEventListener('load', function() {
-    console.log('Página carregada');
-    console.log('Vue disponível:', typeof Vue !== 'undefined');
-    console.log('Utils disponível:', typeof window.utils !== 'undefined');
+    // Página carregada
 
     // Aguarda um pouco mais para garantir que todos os scripts sejam carregados
     setTimeout(function() {
@@ -241,7 +239,7 @@ window.addEventListener('load', function() {
             },
             methods: {
                 showCreateModal() {
-                    console.log('Abrindo modal de criação');
+                    // Abrindo modal de criação
                     if (this.$refs.productModal) {
                         this.$refs.productModal.show();
                     } else {
@@ -250,7 +248,7 @@ window.addEventListener('load', function() {
                 },
 
                 showEditModal(product) {
-                    console.log('Abrindo modal de edição para produto:', product);
+                    // Abrindo modal de edição
 
                     // Validação do produto
                     if (!product || !product.id) {
@@ -260,7 +258,7 @@ window.addEventListener('load', function() {
                     }
 
                     if (this.$refs.productModal) {
-                        console.log('Chamando productModal.show() com:', {
+                        // Chamando productModal.show()
                             product: product,
                             isEdit: true
                         });
@@ -284,7 +282,7 @@ window.addEventListener('load', function() {
                     // Armazena dados para uso posterior
                     this.currentBuyProduct = product;
                     
-                    // Carrega estoque
+    
                     this.loadBuyModalStock(product.id);
                     
                     // Abre o modal

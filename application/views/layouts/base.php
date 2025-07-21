@@ -379,9 +379,9 @@
         // Configuração global do Bootstrap
         window.bootstrap = bootstrap;
         
-        // Utilitários globais
+    
         window.utils = {
-            // Formatar preço
+        
             formatPrice: (value) => {
                 if (value === null || value === undefined || value === '') {
                     return '';

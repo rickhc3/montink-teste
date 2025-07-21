@@ -325,7 +325,7 @@
             }
         });
         
-        // Validar cupom
+        
         document.getElementById('validate-coupon').addEventListener('click', function() {
             const couponCode = document.getElementById('coupon_code').value.trim();
             const subtotal = <?= $subtotal ?>;
@@ -385,7 +385,7 @@
             document.getElementById('total').textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
         }
         
-        // Submeter formulário
+        
         document.getElementById('checkout-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -394,7 +394,7 @@
                 formData.append('coupon_code', document.getElementById('coupon_code').value);
             }
             
-            // Mostrar loading
+            
             const btn = document.querySelector('.btn-checkout');
             btn.querySelector('.normal-text').style.display = 'none';
             btn.querySelector('.loading').style.display = 'inline';
@@ -420,7 +420,7 @@
                 showAlert('Erro ao processar pedido. Tente novamente.', 'danger');
             })
             .finally(() => {
-                // Esconder loading
+
                 btn.querySelector('.normal-text').style.display = 'inline';
                 btn.querySelector('.loading').style.display = 'none';
                 btn.disabled = false;

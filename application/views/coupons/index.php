@@ -431,7 +431,7 @@
                     }
                 },
                 mounted() {
-                    console.log('Vue app mounted for coupons');
+                    // Vue app mounted for coupons
                 }
             }).mount('#app');
         } else {
@@ -454,7 +454,7 @@
                     document.getElementById('couponModalLabel').textContent = 'Editar Cupom';
                     document.getElementById('couponForm').action = '<?= base_url("coupons/update/") ?>' + id;
                     
-                    // Preencher campos
+        
                     document.getElementById('code').value = coupon.code;
                     document.getElementById('discount_type').value = coupon.discount_type;
                     document.getElementById('discount_value').value = coupon.discount_value;
@@ -464,7 +464,7 @@
                     document.getElementById('max_uses').value = coupon.max_uses;
                     document.getElementById('is_active').value = coupon.is_active;
                     
-                    // Abrir modal
+        
                     new bootstrap.Modal(document.getElementById('couponModal')).show();
                 } else {
                     alert('Erro ao carregar dados do cupom');

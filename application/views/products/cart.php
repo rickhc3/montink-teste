@@ -706,7 +706,7 @@
                 return;
             }
 
-            // Mostra loading
+            
             document.getElementById('shipping-cost').innerHTML = '<i class="bi bi-hourglass-split"></i> Calculando...';
 
             const subtotal = <?= isset($subtotal) ? $subtotal : 0 ?>;
@@ -766,7 +766,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Atualiza valores
+    
                     document.getElementById('shipping-cost').innerHTML = 
                         data.shipping_cost === 0 ? '<span class="text-success"><i class="bi bi-gift"></i> Grátis</span>' : `R$ ${data.shipping_cost.toFixed(2).replace('.', ',')}`;
                     
@@ -943,7 +943,7 @@
                 let hasAddressData = false;
                 
                 if (cepField && cepField.value && addressInfo && addressInfo.style.display !== 'none') {
-                    // Preencher CEP
+    
                     document.getElementById('checkout_customer_cep').value = cepField.value;
                     
                     // Verificar se há dados de endereço armazenados globalmente
@@ -1263,7 +1263,7 @@
                         document.getElementById('coupon-discount-line').style.display = 'flex';
                     }
                     
-                    // Atualizar total
+    
                     updateTotal();
                 }
             })

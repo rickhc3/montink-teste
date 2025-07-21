@@ -40,8 +40,7 @@ class Products extends CI_Controller {
             
             $product->stock = $stock_items;
             
-            // Debug: log dos dados do produto
-            log_message('debug', 'Produto ID: ' . $product->id . ', Nome: ' . $product->name . ', Stock: ' . json_encode($stock_items));
+
             
             // Verifica se o ID está presente
             if (!isset($product->id) || empty($product->id)) {
@@ -371,7 +370,7 @@ class Products extends CI_Controller {
             redirect('cart');
         }
         
-        // Calcular valores
+
         $subtotal = 0;
         foreach ($cart as $item) {
             $subtotal += $item['price'] * $item['quantity'];
@@ -423,7 +422,7 @@ class Products extends CI_Controller {
             return;
         }
         
-        // Calcular subtotal
+
         $subtotal = 0;
         foreach ($cart as $item) {
             $subtotal += $item['price'] * $item['quantity'];
@@ -490,7 +489,7 @@ class Products extends CI_Controller {
         
         try {
             // Simular salvamento do pedido (aqui você salvaria no banco)
-            $order_id = rand(1000, 9999); // ID simulado
+            $order_id = rand(1000, 9999);
             $order_data['id'] = $order_id;
             
             // Incrementar contador de uso do cupom se aplicado
@@ -568,7 +567,7 @@ class Products extends CI_Controller {
             return;
         }
         
-        // Calcular subtotal
+        
         $subtotal = 0;
         foreach ($cart as $item) {
             $subtotal += $item['price'] * $item['quantity'];
@@ -635,7 +634,7 @@ class Products extends CI_Controller {
         
         try {
             // Simular salvamento do pedido (aqui você salvaria no banco)
-            $order_id = rand(1000, 9999); // ID simulado
+            $order_id = rand(1000, 9999);
             $order_data['id'] = $order_id;
             
             // Incrementar contador de uso do cupom se aplicado
@@ -787,7 +786,7 @@ class Products extends CI_Controller {
             return;
         }
         
-        // Calcular subtotal
+        
         $subtotal = 0;
         foreach ($cart as $item) {
             $subtotal += $item['price'] * $item['quantity'];
@@ -901,7 +900,7 @@ class Products extends CI_Controller {
             if ($result) {
                 log_message('info', 'E-mail de confirmação enviado para: ' . $order_data['customer_email']);
             } else {
-                log_message('error', 'Falha ao enviar e-mail de confirmação: ' . $this->email->print_debugger());
+                // Falha ao enviar e-mail de confirmação
             }
             
             return $result;
@@ -982,7 +981,7 @@ class Products extends CI_Controller {
             return;
         }
 
-        echo "<h3>Debug do Produto ID: $product_id</h3>";
+        
         
         // Busca o produto
         $product = $this->db->where('id', $product_id)->get('products')->row();
@@ -1007,12 +1006,12 @@ class Products extends CI_Controller {
         echo "<h4>Teste JavaScript:</h4>";
         echo "<script>";
         echo "const stock = " . json_encode($stock_items) . ";";
-        echo "console.log('Stock data:', stock);";
+        // Stock data loaded
         echo "const total = stock.reduce((sum, item) => sum + parseInt(item.quantity), 0);";
-        echo "console.log('Total calculado:', total);";
+        
         echo "</script>";
         
-        // Debug completo do produto com estoque
+        
         $product_with_stock = $product;
         $product_with_stock->stock = $stock_items;
         echo "<h4>Dados completos do produto (JSON):</h4>";

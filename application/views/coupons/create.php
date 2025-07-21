@@ -382,8 +382,7 @@ document.addEventListener('DOMContentLoaded', function() {
             validUntilInput.value = this.value;
         }
     });
-    
-    // Form validation
+
     document.getElementById('coupon-form').addEventListener('submit', function(e) {
         const validFrom = new Date(validFromInput.value);
         const validUntil = new Date(validUntilInput.value);
