@@ -245,6 +245,7 @@ class Products extends CI_Controller {
 
         $cart = $this->session->userdata('cart');
         $item_key = $product_id . '_' . $variation;
+        $quantity_to_add = $quantity;
 
         if (isset($cart[$item_key])) {
             $new_quantity = $cart[$item_key]['quantity'] + $quantity;
@@ -270,10 +271,20 @@ class Products extends CI_Controller {
             ];
         }
 
+        // Reduzir estoque em tempo real
+        $new_stock_quantity = $stock->quantity - $quantity_to_add;
+        $this->db->where('product_id', $product_id)
+                 ->where('variation', $variation)
+                 ->update('stock', ['quantity' => $new_stock_quantity]);
+
         $this->session->set_userdata('cart', $cart);
 
         $this->output->set_content_type('application/json')
-                     ->set_output(json_encode(['success' => true, 'message' => 'Produto adicionado ao carrinho']));
+                     ->set_output(json_encode([
+                         'success' => true, 
+                         'message' => 'Produto adicionado ao carrinho',
+                         'new_stock' => $new_stock_quantity
+                     ]));
     }
 
     public function cart() {
@@ -297,6 +308,11 @@ class Products extends CI_Controller {
         $cart = $this->session->userdata('cart') ?: [];
         
         if (isset($cart[$item_key])) {
+            $item = $cart[$item_key];
+            
+            // Devolver estoque antes de remover do carrinho
+            $this->increase_stock($item['product_id'], $item['variation'], $item['quantity']);
+            
             unset($cart[$item_key]);
             $this->session->set_userdata('cart', $cart);
             
@@ -317,6 +333,13 @@ class Products extends CI_Controller {
     }
 
     public function clear_cart() {
+        $cart = $this->session->userdata('cart') ?: [];
+        
+        // Devolver estoque de todos os itens antes de limpar o carrinho
+        foreach ($cart as $item) {
+            $this->increase_stock($item['product_id'], $item['variation'], $item['quantity']);
+        }
+        
         $this->session->unset_userdata('cart');
         
         // Verifica se é uma requisição AJAX
@@ -475,8 +498,8 @@ class Products extends CI_Controller {
                 $this->Coupon_model->increment_usage($coupon_code);
             }
             
-            // Reduzir estoque dos produtos vendidos
-            $this->reduce_stock($cart);
+            // Nota: O estoque já foi reduzido quando os itens foram adicionados ao carrinho
+            // Não é necessário reduzir novamente aqui
             
             // Enviar e-mail de confirmação
             $email_sent = $this->send_order_confirmation_email($order_data, $cart);
@@ -620,8 +643,8 @@ class Products extends CI_Controller {
                 $this->Coupon_model->increment_usage($coupon_code);
             }
             
-            // Reduzir estoque dos produtos vendidos
-            $this->reduce_stock($cart);
+            // Nota: O estoque já foi reduzido quando os itens foram adicionados ao carrinho
+            // Não é necessário reduzir novamente aqui
             
             // Enviar e-mail de confirmação
             $email_sent = $this->send_order_confirmation_email($order_data, $cart);
@@ -1084,7 +1107,33 @@ class Products extends CI_Controller {
                          ->update('stock', ['quantity' => $new_quantity]);
                 
                 log_message('info', "Estoque reduzido - Produto: {$product_id}, Variação: {$variation}, Quantidade vendida: {$quantity_sold}, Novo estoque: {$new_quantity}");
+            } else {
+                log_message('error', "Item de estoque não encontrado - Produto: {$product_id}, Variação: {$variation}");
             }
+        }
+    }
+    
+    /**
+     * Aumenta o estoque de um produto específico
+     */
+    private function increase_stock($product_id, $variation, $quantity) {
+        // Buscar o item de estoque específico
+        $stock_item = $this->db->where('product_id', $product_id)
+                              ->where('variation', $variation)
+                              ->get('stock')
+                              ->row();
+        
+        if ($stock_item) {
+            $new_quantity = $stock_item->quantity + $quantity;
+            
+            // Atualizar o estoque
+            $this->db->where('product_id', $product_id)
+                     ->where('variation', $variation)
+                     ->update('stock', ['quantity' => $new_quantity]);
+            
+            log_message('info', "Estoque aumentado - Produto: {$product_id}, Variação: {$variation}, Quantidade devolvida: {$quantity}, Novo estoque: {$new_quantity}");
+        } else {
+            log_message('error', "Item de estoque não encontrado para devolução - Produto: {$product_id}, Variação: {$variation}");
         }
     }
 }
