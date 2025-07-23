@@ -3,6 +3,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Webhook extends CI_Controller {
 
+    public $Order_model;
+    public $load;
+    public $email;
+
     public function __construct() {
         parent::__construct();
         $this->load->model('Order_model');

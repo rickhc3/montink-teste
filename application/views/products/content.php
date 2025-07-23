@@ -1,4 +1,4 @@
-<div id="app" class="min-vh-100" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+<div class="min-vh-100" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
     <!-- Container principal -->
     <div class="container py-4">
         <div class="row justify-content-center">

@@ -3,6 +3,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Products extends CI_Controller {
 
+    public $db;
+    public $session;
+    public $email;
+    public $Coupon_model;
+    public $Order_model;
+    public $load;
+    public $input;
+    public $output;
+    public $form_validation;
+
     public function __construct() {
         parent::__construct();
         $this->load->database();
@@ -49,7 +59,10 @@ class Products extends CI_Controller {
         }
         
         $data['products'] = $products;
-        $this->load->view('products/index', $data);
+        $this->load->view('layouts/base', [
+            'title' => 'Catálogo de Produtos',
+            'content' => $this->load->view('products/content', $data, true)
+        ]);
     }
 
     public function get_products() {
@@ -488,17 +501,43 @@ class Products extends CI_Controller {
         ];
         
         try {
-            // Simular salvamento do pedido (aqui você salvaria no banco)
-            $order_id = rand(1000, 9999);
-            $order_data['id'] = $order_id;
+            // Preparar dados do pedido para o banco
+            $order_db_data = [
+                'customer_name' => $customer_data['name'],
+                'customer_email' => $customer_data['email'],
+                'customer_phone' => $customer_data['phone'],
+                'shipping_address' => $customer_data['address'] . ', ' . $customer_data['number'] . ($customer_data['complement'] ? ', ' . $customer_data['complement'] : ''),
+                'shipping_city' => $customer_data['city'],
+                'shipping_state' => $customer_data['state'],
+                'shipping_zipcode' => $customer_data['cep'],
+                'subtotal' => $subtotal,
+                'shipping_cost' => $shipping,
+                'discount_amount' => $discount,
+                'total' => $total,
+                'coupon_code' => $coupon_code
+            ];
             
-            // Incrementar contador de uso do cupom se aplicado
-            if ($coupon_code) {
-                $this->Coupon_model->increment_usage($coupon_code);
+            // Preparar itens do carrinho para o banco
+            $cart_items_db = [];
+            foreach ($cart as $item) {
+                $cart_items_db[] = [
+                    'product_id' => $item['product_id'],
+                    'product_name' => $item['product_name'],
+                    'variation' => $item['variation'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['price']
+                ];
             }
             
-            // Nota: O estoque já foi reduzido quando os itens foram adicionados ao carrinho
-            // Não é necessário reduzir novamente aqui
+            // Salvar pedido no banco de dados
+            $result = $this->Order_model->create_order($order_db_data, $cart_items_db);
+            
+            if (!$result['success']) {
+                throw new Exception($result['message']);
+            }
+            
+            $order_id = $result['order_id'];
+            $order_data['id'] = $order_id;
             
             // Enviar e-mail de confirmação
             $email_sent = $this->send_order_confirmation_email($order_data, $cart);
@@ -633,17 +672,43 @@ class Products extends CI_Controller {
         ];
         
         try {
-            // Simular salvamento do pedido (aqui você salvaria no banco)
-            $order_id = rand(1000, 9999);
-            $order_data['id'] = $order_id;
+            // Preparar dados do pedido para o banco
+            $order_db_data = [
+                'customer_name' => $customer_data['name'],
+                'customer_email' => $customer_data['email'],
+                'customer_phone' => $customer_data['phone'],
+                'shipping_address' => $customer_data['address'] . ', ' . $customer_data['number'] . ($customer_data['complement'] ? ', ' . $customer_data['complement'] : ''),
+                'shipping_city' => $customer_data['city'],
+                'shipping_state' => $customer_data['state'],
+                'shipping_zipcode' => $customer_data['cep'],
+                'subtotal' => $subtotal,
+                'shipping_cost' => $shipping,
+                'discount_amount' => $discount,
+                'total' => $total,
+                'coupon_code' => $coupon_code
+            ];
             
-            // Incrementar contador de uso do cupom se aplicado
-            if ($coupon_code) {
-                $this->Coupon_model->increment_usage($coupon_code);
+            // Preparar itens do carrinho para o banco
+            $cart_items_db = [];
+            foreach ($cart as $item) {
+                $cart_items_db[] = [
+                    'product_id' => $item['product_id'],
+                    'product_name' => $item['product_name'],
+                    'variation' => $item['variation'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['price']
+                ];
             }
             
-            // Nota: O estoque já foi reduzido quando os itens foram adicionados ao carrinho
-            // Não é necessário reduzir novamente aqui
+            // Salvar pedido no banco de dados
+            $result = $this->Order_model->create_order($order_db_data, $cart_items_db);
+            
+            if (!$result['success']) {
+                throw new Exception($result['message']);
+            }
+            
+            $order_id = $result['order_id'];
+            $order_data['id'] = $order_id;
             
             // Enviar e-mail de confirmação
             $email_sent = $this->send_order_confirmation_email($order_data, $cart);

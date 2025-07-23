@@ -26,6 +26,18 @@ if (typeof ProductsTable !== 'undefined') {
     window.VueComponents.ProductsTable = ProductsTable;
 
 }
+if (typeof CouponForm !== 'undefined') {
+    window.VueComponents.CouponForm = CouponForm;
+
+}
+if (typeof CouponModal !== 'undefined') {
+    window.VueComponents.CouponModal = CouponModal;
+
+}
+if (typeof CouponsTable !== 'undefined') {
+    window.VueComponents.CouponsTable = CouponsTable;
+
+}
 
 
 </script>

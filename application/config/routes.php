@@ -49,33 +49,66 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | Examples:	my-controller/index	-> my_controller/index
 |		my-controller/my-method	-> my_controller/my_method
 */
+
+// =========================================================================
+// CONFIGURAÇÕES BÁSICAS DO SISTEMA
+// =========================================================================
 $route['default_controller'] = 'products';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 
+// =========================================================================
+// ROTAS PRINCIPAIS
+// =========================================================================
 // Redireciona a raiz para products
 $route[''] = 'products/index';
 
+// =========================================================================
+// SEÇÃO: PRODUTOS
+// =========================================================================
+// CRUD de produtos
 $route['products/create'] = 'products/create';
 $route['products/store']  = 'products/store';
 $route['products/edit/(:num)'] = 'products/edit/$1';
 $route['products/update'] = 'products/update';
 $route['products/delete/(:num)'] = 'products/delete/$1';
+
+// Gestão de estoque
 $route['products/get_stock/(:num)'] = 'products/get_stock/$1';
 $route['products/get_products'] = 'products/get_products';
+
+// Carrinho de compras
 $route['products/add_to_cart'] = 'products/add_to_cart';
 $route['cart'] = 'products/cart';
 $route['products/remove_from_cart/(:any)'] = 'products/remove_from_cart/$1';
 $route['products/clear_cart'] = 'products/clear_cart';
+
+// Checkout e finalização
 $route['products/checkout'] = 'products/checkout';
 $route['products/finalize_order'] = 'products/finalize_order';
 $route['products/calculate_shipping'] = 'products/calculate_shipping';
+
+// Testes e desenvolvimento
 $route['products/test'] = 'products/test';
 
-// Rotas para cupons
+// =========================================================================
+// SEÇÃO: CUPONS DE DESCONTO
+// =========================================================================
+// CRUD de cupons
 $route['coupons'] = 'coupons/index';
 $route['coupons/create'] = 'coupons/create';
 $route['coupons/edit/(:num)'] = 'coupons/edit/$1';
 $route['coupons/delete/(:num)'] = 'coupons/delete/$1';
+
+// Validação de cupons
 $route['coupons/validate'] = 'coupons/validate';
+
+// =========================================================================
+// SEÇÃO: WEBHOOKS
+// =========================================================================
+// Webhook para atualização de status de pedidos
+$route['webhook/order_status'] = 'webhook/order_status';
+
+// Health check para webhooks
+$route['webhook/health'] = 'webhook/health';
 

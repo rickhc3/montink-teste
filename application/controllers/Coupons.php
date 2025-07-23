@@ -3,6 +3,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Coupons extends CI_Controller {
 
+    public $session;
+    public $form_validation;
+    public $Coupon_model;
+    public $input;
+    public $load;
+    public $output;
+
     public function __construct() {
         parent::__construct();
         $this->load->model('Coupon_model');
@@ -25,7 +32,7 @@ class Coupons extends CI_Controller {
 
         $this->load->view('layouts/base', [
             'title' => 'Gerenciar Cupons',
-            'content' => $this->load->view('coupons/index', $data, true)
+            'content' => $this->load->view('coupons/content', $data, true)
         ]);
     }
 
@@ -55,7 +62,7 @@ class Coupons extends CI_Controller {
                 ];
 
                 $result = $this->Coupon_model->create_coupon($data);
-                
+
                 if ($result['success']) {
                     $this->session->set_flashdata('success', 'Cupom criado com sucesso!');
                     redirect('coupons');
@@ -76,7 +83,7 @@ class Coupons extends CI_Controller {
      */
     public function edit($id) {
         $data['coupon'] = $this->Coupon_model->get_coupon($id);
-        
+
         if (!$data['coupon']) {
             show_404();
         }
@@ -103,7 +110,7 @@ class Coupons extends CI_Controller {
                 ];
 
                 $result = $this->Coupon_model->update_coupon($id, $update_data);
-                
+
                 if ($result['success']) {
                     $this->session->set_flashdata('success', 'Cupom atualizado com sucesso!');
                     redirect('coupons');
@@ -124,7 +131,7 @@ class Coupons extends CI_Controller {
      */
     public function delete($id) {
         $coupon = $this->Coupon_model->get_coupon($id);
-        
+
         if (!$coupon) {
             show_404();
         }
@@ -139,11 +146,25 @@ class Coupons extends CI_Controller {
     }
 
     /**
+     * Get all coupons via AJAX
+     */
+    public function get_coupons() {
+        $this->output->set_content_type('application/json');
+
+        $coupons = $this->Coupon_model->get_all_coupons();
+
+        $this->output->set_output(json_encode([
+            'success' => true,
+            'coupons' => $coupons
+        ]));
+    }
+
+    /**
      * Get coupon data via AJAX
      */
     public function get($id) {
         $coupon = $this->Coupon_model->get_coupon($id);
-        
+
         if ($coupon) {
             echo json_encode([
                 'success' => true,
@@ -161,6 +182,8 @@ class Coupons extends CI_Controller {
      * Store new coupon via AJAX
      */
     public function store() {
+        $this->output->set_content_type('application/json');
+
         $this->form_validation->set_rules('code', 'Código', 'required|min_length[3]|max_length[50]');
         $this->form_validation->set_rules('discount_type', 'Tipo de Desconto', 'required|in_list[percentage,fixed]');
         $this->form_validation->set_rules('discount_value', 'Valor do Desconto', 'required|numeric|greater_than[0]');
@@ -182,17 +205,16 @@ class Coupons extends CI_Controller {
             ];
 
             $result = $this->Coupon_model->create_coupon($data);
-            
-            if ($result['success']) {
-                $this->session->set_flashdata('success', 'Cupom criado com sucesso!');
-                redirect('coupons');
-            } else {
-                $this->session->set_flashdata('error', $result['message']);
-                redirect('coupons');
-            }
+
+            $this->output->set_output(json_encode([
+                'success' => $result['success'],
+                'message' => $result['success'] ? 'Cupom criado com sucesso!' : $result['message']
+            ]));
         } else {
-            $this->session->set_flashdata('error', validation_errors());
-            redirect('coupons');
+            $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => validation_errors()
+            ]));
         }
     }
 
@@ -200,11 +222,15 @@ class Coupons extends CI_Controller {
      * Update coupon via AJAX
      */
     public function update($id) {
+        $this->output->set_content_type('application/json');
+
         $coupon = $this->Coupon_model->get_coupon($id);
-        
+
         if (!$coupon) {
-            $this->session->set_flashdata('error', 'Cupom não encontrado');
-            redirect('coupons');
+            $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Cupom não encontrado'
+            ]));
             return;
         }
 
@@ -229,17 +255,16 @@ class Coupons extends CI_Controller {
             ];
 
             $result = $this->Coupon_model->update_coupon($id, $update_data);
-            
-            if ($result['success']) {
-                $this->session->set_flashdata('success', 'Cupom atualizado com sucesso!');
-                redirect('coupons');
-            } else {
-                $this->session->set_flashdata('error', $result['message']);
-                redirect('coupons');
-            }
+
+            $this->output->set_output(json_encode([
+                'success' => $result['success'],
+                'message' => $result['success'] ? 'Cupom atualizado com sucesso!' : $result['message']
+            ]));
         } else {
-            $this->session->set_flashdata('error', validation_errors());
-            redirect('coupons');
+            $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => validation_errors()
+            ]));
         }
     }
 
@@ -256,7 +281,7 @@ class Coupons extends CI_Controller {
         }
 
         $result = $this->Coupon_model->validate_coupon($code, $subtotal);
-        
+
         if ($result['valid']) {
             $discount = $this->Coupon_model->calculate_discount($result['coupon'], $subtotal);
             echo json_encode([
