@@ -10,41 +10,8 @@ services:
             - .:/var/www/html
         environment:
             - CI_ENV=development
-            - DB_HOST=db
-            - DB_USERNAME=user
-            - DB_PASSWORD=password
-            - DB_DATABASE=montink
-        depends_on:
-            - db
-
-    db:
-        image: mysql:5.7
-        container_name: ci3_db
-        restart: always
-        command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-        environment:
-            MYSQL_DATABASE: montink
-            MYSQL_ROOT_PASSWORD: root
-            MYSQL_USER: user
-            MYSQL_PASSWORD: password
-        ports:
-            - "3306:3306"
-        volumes:
-            - db_data:/var/lib/mysql
-            - ./docker/mysql:/docker-entrypoint-initdb.d
-
-
-    phpmyadmin:
-        image: phpmyadmin/phpmyadmin
-        container_name: ci3_phpmyadmin
-        environment:
-            PMA_HOST: db
-            PMA_USER: root
-            PMA_PASSWORD: root
-        ports:
-            - "8081:80"
-        depends_on:
-            - db
+            - DB_DRIVER=sqlite3
+            - DB_DATABASE=database/montink.db
 
     mailpit:
         image: axllent/mailpit
@@ -56,6 +23,3 @@ services:
         environment:
             MP_SMTP_AUTH_ACCEPT_ANY: 1
             MP_SMTP_AUTH_ALLOW_INSECURE: 1
-
-volumes:
-    db_data:
