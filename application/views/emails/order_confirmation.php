@@ -196,8 +196,15 @@
                 
                 <?php if (!empty($order->customer_address)): ?>
                 <div class="info-item" style="grid-column: 1 / -1; margin-top: 15px;">
-                    <div class="info-label">Endereço</div>
-                    <div class="info-value"><?= $order->customer_address ?></div>
+                    <div class="info-label">Endereço de Entrega</div>
+                    <div class="info-value">
+                        <?= $order->customer_address ?>
+                        <?php if (!empty($order->customer_number)): ?>, <?= $order->customer_number ?><?php endif; ?>
+                        <?php if (!empty($order->customer_complement)): ?>, <?= $order->customer_complement ?><?php endif; ?><br>
+                        <?php if (!empty($order->customer_neighborhood)): ?><?= $order->customer_neighborhood ?>, <?php endif; ?>
+                        <?= $order->customer_city ?> - <?= $order->customer_state ?><br>
+                        CEP: <?= $order->customer_cep ?>
+                    </div>
                 </div>
                 <?php endif; ?>
             </div>

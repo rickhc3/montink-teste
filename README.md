@@ -1,6 +1,6 @@
-# 🛍️ Montink - Sistema de E-commerce
+# 🛍️ Montink
 
-Sistema de e-commerce desenvolvido em **CodeIgniter 3** com **Vue.js** e **Bootstrap 5**.
+Projeto desenvolvido em **CodeIgniter 3** com **Vue.js** e **Bootstrap 5**.
 
 ## ✨ Funcionalidades
 
@@ -106,17 +106,195 @@ response (TEXT)
 created_at (TIMESTAMP)
 ```
 
-## 🐳 Instalação
+## 🐳 Instalação e Configuração
 
+### Opção 1: Docker (Recomendado)
+
+#### Pré-requisitos
+- Docker
+- Docker Compose
+
+#### Passos para instalação
+
+1. **Clone o repositório**
 ```bash
 git clone <url-do-repositorio>
 cd montink
+```
+
+2. **Configure o ambiente**
+```bash
 cp .env.example .env
+# Edite o .env conforme necessário
+```
+
+3. **Suba os containers**
+```bash
 docker-compose up -d
 ```
 
-**Acesso**: http://localhost:8080  
-**E-mails**: http://localhost:8025
+4. **Aguarde a inicialização**
+```bash
+# Verifique se todos os containers estão rodando
+docker-compose ps
+
+# Acompanhe os logs se necessário
+docker-compose logs -f
+```
+
+#### Serviços disponíveis
+- **Aplicação**: http://localhost:8080
+- **PHPMyAdmin**: http://localhost:8081
+- **Mailpit (E-mails)**: http://localhost:8025
+- **MySQL**: localhost:3306
+
+#### Comandos úteis
+
+```bash
+# Parar os containers
+docker-compose down
+
+# Parar e remover volumes (limpar banco)
+docker-compose down -v
+
+# Reconstruir containers
+docker-compose up -d --build
+
+# Ver logs de um serviço específico
+docker-compose logs app
+docker-compose logs mysql
+
+# Acessar container da aplicação
+docker-compose exec app bash
+
+# Acessar MySQL
+docker-compose exec mysql mysql -u root -p
+```
+
+### Opção 2: Instalação Manual
+
+#### Pré-requisitos
+- PHP 7.4+
+- MySQL 8.0+ ou SQLite
+- Composer
+- Servidor web (Apache/Nginx)
+
+#### Configuração do banco de dados
+
+**Para MySQL:**
+```bash
+# 1. Crie o banco de dados
+mysql -u root -p
+CREATE DATABASE montink;
+USE montink;
+
+# 2. Execute o script de inicialização
+source docker/mysql/init.sql;
+```
+
+**Para SQLite:**
+```bash
+# 1. Crie o banco SQLite
+sqlite3 database/montink.db < init_sqlite.sql
+
+# 2. Configure as permissões
+chmod 664 database/montink.db
+chmod 775 database/
+```
+
+#### Configuração da aplicação
+
+1. **Configure o banco no CodeIgniter**
+```php
+// application/config/database.php
+
+// Para MySQL
+$db['default'] = array(
+    'dsn' => '',
+    'hostname' => 'localhost',
+    'username' => 'seu_usuario',
+    'password' => 'sua_senha',
+    'database' => 'montink',
+    'dbdriver' => 'mysqli',
+    // ... outras configurações
+);
+
+// Para SQLite
+$db['default'] = array(
+    'dsn' => '',
+    'hostname' => '',
+    'username' => '',
+    'password' => '',
+    'database' => FCPATH . 'database/montink.db',
+    'dbdriver' => 'sqlite3',
+    // ... outras configurações
+);
+```
+
+2. **Configure o servidor web**
+```bash
+# Para desenvolvimento com PHP built-in
+php -S localhost:8000
+
+# Para Apache, configure o DocumentRoot para a pasta do projeto
+# Para Nginx, configure o root e try_files adequadamente
+```
+
+3. **Configure permissões**
+```bash
+chmod -R 755 application/cache/
+chmod -R 755 application/logs/
+```
+
+#### Scripts de banco disponíveis
+
+- **`docker/mysql/init.sql`**: Schema completo para MySQL com dados de exemplo
+- **`init_sqlite.sql`**: Schema completo para SQLite com dados de exemplo
+
+#### Dados de exemplo incluídos
+
+**Produtos:**
+- Camiseta Básica (R$ 29,90)
+- Calça Jeans (R$ 89,90)
+- Tênis Esportivo (R$ 159,90)
+- Jaqueta de Couro (R$ 299,90)
+- Vestido Floral (R$ 79,90)
+
+**Cupons:**
+- `BEMVINDO10`: 10% de desconto
+- `ECONOMIZE20`: R$ 20,00 de desconto
+- `PRIMEIRO15`: 15% de desconto
+- `MEGA30`: 30% de desconto
+- `FRETE5`: R$ 5,00 de desconto
+
+### Configurações avançadas
+
+**Variáveis de ambiente (.env):**
+```bash
+# Banco de dados
+DB_HOST=mysql
+DB_NAME=montink
+DB_USER=root
+DB_PASS=root123
+
+# E-mail
+MAIL_HOST=mailpit
+MAIL_PORT=1025
+MAIL_FROM=noreply@montink.com
+
+# Aplicação
+APP_URL=http://localhost:8080
+APP_ENV=development
+```
+
+**Configuração de produção:**
+```bash
+# 1. Altere as senhas padrão
+# 2. Configure SSL/HTTPS
+# 3. Ajuste limites de memória PHP
+# 4. Configure backup automático
+# 5. Monitore logs de erro
+```
 
 ## 📖 Como Usar
 
@@ -182,22 +360,55 @@ montink/
 
 ## 📧 Sistema de E-mails
 
-### Template de Confirmação
+### Templates Disponíveis
+
+#### 1. E-mail de Confirmação de Pedido
 - **Arquivo**: `application/views/emails/order_confirmation.php`
+- **Trigger**: Enviado automaticamente quando um pedido é finalizado
 - **Funcionalidades**:
   - Design responsivo com HTML/CSS inline
   - Detalhes completos do pedido (produtos, quantidades, preços)
   - Informações do cliente e endereço de entrega
   - Resumo financeiro (subtotal, frete, desconto, total)
-  - Suporte a imagens incorporadas
   - Layout profissional com cores e tipografia moderna
 
+#### 2. E-mail de Atualização de Status
+- **Arquivo**: `application/views/emails/order_status_update.php`
+- **Trigger**: Enviado via webhook quando status do pedido é atualizado
+- **Status suportados**: shipped, delivered
+- **Funcionalidades**:
+  - Notificação de mudança de status
+  - Informações de rastreamento (quando aplicável)
+  - Layout consistente com template de confirmação
+
+#### 3. E-mail de Cancelamento
+- **Arquivo**: `application/views/emails/order_cancellation.php`
+- **Trigger**: Enviado via webhook quando pedido é cancelado
+- **Funcionalidades**:
+  - Notificação de cancelamento
+  - Motivo do cancelamento (quando fornecido)
+  - Informações sobre reembolso
+  - Suporte ao cliente
+
 ### Configuração SMTP
+- **Template Engine**: PHP com HTML/CSS inline
 - **Servidor**: Mailpit (desenvolvimento)
 - **Host**: `mailpit` (container Docker)
 - **Porta**: `1025`
 - **Interface Web**: http://localhost:8025
-- **Encoding**: UTF-8 com suporte a caracteres especiais
+- **Encoding**: UTF-8 com suporte completo a caracteres especiais
+- **Design**: Responsivo e compatível com principais clientes de e-mail
+
+### Screenshots dos E-mails
+Para visualizar os templates de e-mail em funcionamento, consulte a documentação visual em:
+
+📁 **[docs/email-screenshots/README.md](docs/email-screenshots/README.md)**
+
+Esta documentação apresenta:
+- Screenshots de todos os templates de e-mail (confirmação, envio, entrega, cancelamento)
+- Características e funcionalidades de cada template
+- Informações técnicas sobre o sistema de e-mails
+- Localização dos arquivos de template
 
 ### Envio Automático
 - **Trigger**: Finalização de pedido
@@ -205,6 +416,6 @@ montink/
 - **Logs**: Registro de envios no sistema
 - **Fallback**: Tratamento de erros de envio
 
----
 
-**Sistema de e-commerce completo com CodeIgniter 3, Vue.js e Bootstrap 5**
+
+---

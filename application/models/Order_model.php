@@ -31,7 +31,7 @@ class Order_model extends CI_Model {
             'shipping_cost' => $order_data['shipping_cost'] ?? 0,
             'discount_amount' => $order_data['discount_amount'] ?? 0,
             'total' => $order_data['total'],
-            'coupon_code' => $order_data['coupon_code'] ?? null,
+            'coupon_code' => !empty($order_data['coupon_code']) ? $order_data['coupon_code'] : null,
             'status' => 'pending'
         ];
 
