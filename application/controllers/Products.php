@@ -506,7 +506,11 @@ class Products extends CI_Controller {
                 'customer_name' => $customer_data['name'],
                 'customer_email' => $customer_data['email'],
                 'customer_phone' => $customer_data['phone'],
-                'shipping_address' => $customer_data['address'] . ', ' . $customer_data['number'] . ($customer_data['complement'] ? ', ' . $customer_data['complement'] : ''),
+                'customer_document' => $this->input->post('customer_document'),
+                'shipping_address' => $customer_data['address'],
+                'shipping_number' => $customer_data['number'],
+                'shipping_complement' => $customer_data['complement'],
+                'shipping_neighborhood' => $customer_data['neighborhood'],
                 'shipping_city' => $customer_data['city'],
                 'shipping_state' => $customer_data['state'],
                 'shipping_zipcode' => $customer_data['cep'],
@@ -522,7 +526,7 @@ class Products extends CI_Controller {
             foreach ($cart as $item) {
                 $cart_items_db[] = [
                     'product_id' => $item['product_id'],
-                    'product_name' => $item['product_name'],
+                    'product_name' => $item['name'], // Corrigido: usar 'name' ao invés de 'product_name'
                     'variation' => $item['variation'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['price']
@@ -677,7 +681,11 @@ class Products extends CI_Controller {
                 'customer_name' => $customer_data['name'],
                 'customer_email' => $customer_data['email'],
                 'customer_phone' => $customer_data['phone'],
-                'shipping_address' => $customer_data['address'] . ', ' . $customer_data['number'] . ($customer_data['complement'] ? ', ' . $customer_data['complement'] : ''),
+                'customer_document' => $this->input->post('customer_document'),
+                'shipping_address' => $customer_data['address'],
+                'shipping_number' => $customer_data['number'],
+                'shipping_complement' => $customer_data['complement'],
+                'shipping_neighborhood' => $customer_data['neighborhood'],
                 'shipping_city' => $customer_data['city'],
                 'shipping_state' => $customer_data['state'],
                 'shipping_zipcode' => $customer_data['cep'],
@@ -693,7 +701,7 @@ class Products extends CI_Controller {
             foreach ($cart as $item) {
                 $cart_items_db[] = [
                     'product_id' => $item['product_id'],
-                    'product_name' => $item['product_name'],
+                    'product_name' => $item['name'], // Corrigido: usar 'name' ao invés de 'product_name'
                     'variation' => $item['variation'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['price']

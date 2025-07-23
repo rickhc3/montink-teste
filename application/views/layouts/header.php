@@ -25,8 +25,6 @@
         
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
         }
         
         .navbar {
@@ -37,24 +35,12 @@
         }
         
         .navbar-brand {
-            font-size: 1.5rem;
-            font-weight: 700;
             color: var(--primary-color) !important;
-        }
-        
-        .btn {
-            border-radius: 4px;
-            padding: 0.4rem 0.8rem;
-            font-weight: 500;
-            transition: all 0.15s ease;
-            border: 1px solid transparent;
-            font-size: 0.875rem;
         }
         
         .btn-primary {
             background: var(--accent-color);
             border: 1px solid var(--accent-color);
-            color: white;
         }
         
         .btn-primary:hover {
@@ -64,7 +50,6 @@
         }
         
         .btn-outline-secondary {
-            background: transparent;
             border: 1px solid rgba(108, 117, 125, 0.3);
             color: var(--medium-gray);
         }
@@ -80,7 +65,7 @@
     <!-- Navbar Global -->
     <nav class="navbar navbar-expand-lg navbar-light sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="<?= base_url('products') ?>">
+            <a class="navbar-brand fs-4 fw-bold" href="<?= base_url('products') ?>">
                 <i class="bi bi-shop text-primary"></i> Montink
             </a>
             <div class="navbar-nav ms-auto">
@@ -90,13 +75,13 @@
                 $is_coupons = strpos($current_url, 'coupons') !== false;
                 $is_cart = strpos($current_url, 'cart') !== false;
                 ?>
-                <a href="<?= base_url('products') ?>" class="btn <?= $is_products ? 'btn-primary' : 'btn-outline-secondary' ?> me-2">
+                <a href="<?= base_url('products') ?>" class="btn <?= $is_products ? 'btn-primary' : 'btn-outline-secondary' ?> me-2 fw-medium">
                     <i class="bi bi-box"></i> Produtos
                 </a>
-                <a href="<?= base_url('coupons') ?>" class="btn <?= $is_coupons ? 'btn-primary' : 'btn-outline-secondary' ?> me-2">
+                <a href="<?= base_url('coupons') ?>" class="btn <?= $is_coupons ? 'btn-primary' : 'btn-outline-secondary' ?> me-2 fw-medium">
                     <i class="bi bi-tag"></i> Cupons
                 </a>
-                <a href="<?= base_url('cart') ?>" class="btn <?= $is_cart ? 'btn-primary' : 'btn-outline-secondary' ?>">
+                <a href="<?= base_url('cart') ?>" class="btn <?= $is_cart ? 'btn-primary' : 'btn-outline-secondary' ?> fw-medium">
                     <i class="bi bi-cart3"></i> Carrinho
                 </a>
             </div>

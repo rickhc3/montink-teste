@@ -106,9 +106,9 @@ CREATE TABLE webhook_logs (
 
 -- Insert some sample coupons
 INSERT INTO coupons (code, discount_type, discount_value, min_amount, max_uses, valid_from, valid_until, is_active) VALUES
-('WELCOME10', 'percentage', 10.00, 50.00, 100, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), TRUE),
-('SAVE20', 'fixed', 20.00, 100.00, 50, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 60 DAY), TRUE),
-('FIRST15', 'percentage', 15.00, 75.00, 200, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 45 DAY), TRUE),
+('BEMVINDO10', 'percentage', 10.00, 50.00, 100, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), TRUE),
+('ECONOMIZE20', 'fixed', 20.00, 100.00, 50, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 60 DAY), TRUE),
+('PRIMEIRO15', 'percentage', 15.00, 75.00, 200, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 45 DAY), TRUE),
 ('MEGA30', 'percentage', 30.00, 200.00, 25, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 15 DAY), TRUE),
 ('FRETE5', 'fixed', 5.00, 30.00, NULL, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), TRUE);
 

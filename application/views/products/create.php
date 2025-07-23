@@ -48,7 +48,7 @@
                                             <input type="number" name="variations[0][quantity]" placeholder="Estoque" min="0" class="form-control" required>
                                         </div>
                                         <div class="col-md-1">
-                                            <button type="button" onclick="removeVariation(this)" class="btn btn-danger btn-sm w-100" style="height: 38px;">
+                                            <button type="button" onclick="removeVariation(this)" class="btn btn-danger btn-sm w-100 d-flex align-items-center justify-content-center" style="height: 38px;">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </div>
@@ -116,7 +116,7 @@
                     <input type="number" name="variations[${variationIndex}][quantity]" placeholder="Estoque" min="0" class="form-control" required>
                 </div>
                 <div class="col-md-1">
-                    <button type="button" onclick="removeVariation(this)" class="btn btn-danger btn-sm w-100" style="height: 38px;">
+                    <button type="button" onclick="removeVariation(this)" class="btn btn-danger btn-sm w-100 d-flex align-items-center justify-content-center" style="height: 38px;">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>

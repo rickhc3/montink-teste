@@ -82,11 +82,11 @@ const ProductForm = {
                             <button 
                                 type="button" 
                                 @click="removeVariation(index)" 
-                                class="btn btn-danger btn-sm w-100"
+                                class="btn btn-danger btn-sm w-100 d-flex align-items-center justify-content-center"
                                 title="Remover variação"
-                                style="height: 38px; display: flex; align-items: center; justify-content: center;"
+                                style="height: 38px;"
                             >
-                                <i class="bi bi-trash" style="font-size: 0.9rem;"></i>
+                                <i class="bi bi-trash"></i>
                             </button>
                         </div>
                     </div>

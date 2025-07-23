@@ -54,7 +54,7 @@
                                                     <input type="number" name="stock[<?= $item->id ?>][quantity]" value="<?= $item->quantity ?>" min="0" class="form-control" required>
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <button type="button" onclick="removeStock(this)" class="btn btn-danger btn-sm w-100" style="height: 38px;">
+                                                    <button type="button" onclick="removeStock(this)" class="btn btn-danger btn-sm w-100 d-flex align-items-center justify-content-center" style="height: 38px;">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </div>
@@ -128,7 +128,7 @@
                     <input type="number" name="stock[new_${stockIndex}][quantity]" placeholder="Estoque" min="0" class="form-control" required>
                 </div>
                 <div class="col-md-2">
-                    <button type="button" onclick="removeStock(this)" class="btn btn-danger btn-sm w-100" style="height: 38px;">
+                    <button type="button" onclick="removeStock(this)" class="btn btn-danger btn-sm w-100 d-flex align-items-center justify-content-center" style="height: 38px;">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>

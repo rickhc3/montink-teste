@@ -9,9 +9,10 @@ const CouponsTable = {
     },
     template: `
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table mb-0">
                 <thead class="table-light">
                     <tr>
+                        <th>ID</th>
                         <th>Código</th>
                         <th>Status</th>
                         <th>Tipo</th>
@@ -19,23 +20,24 @@ const CouponsTable = {
                         <th>Valor Mínimo</th>
                         <th>Validade</th>
                         <th>Usos</th>
-                        <th>Ações</th>
+                        <th class="text-center">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="coupon in coupons" :key="coupon.id">
-                        <td><strong>{{ coupon.code }}</strong></td>
+                        <td><span class="badge bg-secondary">{{ coupon.id }}</span></td>
+                        <td><strong class="text-dark">{{ coupon.code }}</strong></td>
                         <td><span :class="getStatusClass(coupon)">{{ getStatusText(coupon) }}</span></td>
-                        <td>{{ getTypeText(coupon.discount_type) }}</td>
-                        <td>{{ getDiscountDisplay(coupon) }}</td>
-                        <td>{{ formatCurrency(coupon.min_amount) }}</td>
-                        <td>{{ formatDate(coupon.valid_until) }}</td>
-                        <td>{{ getUsageText(coupon) }}</td>
-                        <td>
-                            <div class="btn-group btn-group-sm">
+                        <td><span class="badge bg-light text-dark">{{ getTypeText(coupon.discount_type) }}</span></td>
+                        <td><span class="text-success fw-bold">{{ getDiscountDisplay(coupon) }}</span></td>
+                        <td><span class="text-muted">{{ formatCurrency(coupon.min_amount) }}</span></td>
+                        <td><span class="text-muted">{{ formatDate(coupon.valid_until) }}</span></td>
+                        <td><span class="badge bg-info">{{ getUsageText(coupon) }}</span></td>
+                        <td class="py-3 text-center">
+                            <div class="d-flex gap-2 justify-content-center">
                                 <button 
                                     type="button" 
-                                    class="btn btn-outline-primary" 
+                                    class="btn btn-primary btn-sm" 
                                     @click="editCoupon(coupon)"
                                     title="Editar"
                                 >
@@ -43,7 +45,7 @@ const CouponsTable = {
                                 </button>
                                 <button 
                                     type="button" 
-                                    class="btn btn-outline-danger" 
+                                    class="btn btn-danger btn-sm" 
                                     @click="deleteCoupon(coupon)"
                                     title="Excluir"
                                 >

@@ -9,96 +9,27 @@
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .checkout-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .checkout-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            overflow: hidden;
         }
         .checkout-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        .form-section {
-            padding: 30px;
         }
         .section-title {
-            color: #333;
-            margin-bottom: 20px;
-            font-weight: 600;
             border-bottom: 2px solid #667eea;
-            padding-bottom: 10px;
-        }
-        .form-control {
-            border-radius: 8px;
-            border: 2px solid #e9ecef;
-            padding: 12px 15px;
-            transition: all 0.3s ease;
         }
         .form-control:focus {
             border-color: #667eea;
             box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
         }
-        .order-summary {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-        .order-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #dee2e6;
-        }
-        .order-item:last-child {
-            border-bottom: none;
-        }
         .total-row {
-            font-weight: 600;
-            font-size: 1.1em;
-            color: #333;
             border-top: 2px solid #667eea;
-            padding-top: 15px;
-            margin-top: 15px;
         }
         .btn-checkout {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 8px;
-            padding: 15px 30px;
-            font-size: 1.1em;
-            font-weight: 600;
-            color: white;
-            width: 100%;
-            transition: all 0.3s ease;
         }
         .btn-checkout:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
             color: white;
-        }
-        .btn-back {
-            background: #6c757d;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            color: white;
-            text-decoration: none;
-            display: inline-block;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
         }
         .btn-back:hover {
             background: #5a6268;
@@ -108,55 +39,53 @@
         .loading {
             display: none;
         }
-        .alert {
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
     </style>
 </head>
-<body>
-    <div class="checkout-container">
-        <a href="<?= base_url('cart') ?>" class="btn-back">
-            <i class="fas fa-arrow-left"></i> Voltar ao Carrinho
-        </a>
+<body class="min-vh-100">
+    <div class="container" style="max-width: 1200px;">
+        <div class="p-3">
+            <a href="<?= base_url('cart') ?>" class="btn btn-secondary rounded-3 px-3 py-2 text-decoration-none d-inline-block mb-3">
+                <i class="fas fa-arrow-left"></i> Voltar ao Carrinho
+            </a>
+        </div>
         
-        <div class="checkout-card">
-            <div class="checkout-header">
+        <div class="bg-white rounded-4 shadow overflow-hidden">
+            <div class="checkout-header text-white p-4 text-center">
                 <h1><i class="fas fa-shopping-cart"></i> Finalizar Pedido</h1>
                 <p class="mb-0">Preencha seus dados para concluir a compra</p>
             </div>
             
             <div class="row g-0">
                 <div class="col-lg-8">
-                    <div class="form-section">
+                    <div class="p-4">
                         <div id="alert-container"></div>
                         
                         <form id="checkout-form">
-                            <h3 class="section-title"><i class="fas fa-user"></i> Dados Pessoais</h3>
+                            <h3 class="section-title text-dark mb-3 fw-semibold pb-2"><i class="fas fa-user"></i> Dados Pessoais</h3>
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="customer_name" class="form-label">Nome Completo *</label>
-                                    <input type="text" class="form-control" id="customer_name" name="customer_name" required>
+                                    <input type="text" class="form-control rounded-3 border-2 px-3 py-3" id="customer_name" name="customer_name" required>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="customer_email" class="form-label">E-mail *</label>
-                                    <input type="email" class="form-control" id="customer_email" name="customer_email" required>
+                                    <input type="email" class="form-control rounded-3 border-2 px-3 py-3" id="customer_email" name="customer_email" required>
                                 </div>
                             </div>
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="customer_phone" class="form-label">Telefone *</label>
-                                    <input type="tel" class="form-control" id="customer_phone" name="customer_phone" required>
+                                    <input type="tel" class="form-control rounded-3 border-2 px-3 py-3" id="customer_phone" name="customer_phone" required>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="customer_cep" class="form-label">CEP *</label>
-                                    <input type="text" class="form-control" id="customer_cep" name="customer_cep" required maxlength="9" placeholder="00000-000">
+                                    <input type="text" class="form-control rounded-3 border-2 px-3 py-3" id="customer_cep" name="customer_cep" required maxlength="9" placeholder="00000-000">
                                 </div>
                             </div>
                             
-                            <h3 class="section-title mt-4"><i class="fas fa-map-marker-alt"></i> Endereço de Entrega</h3>
+                            <h3 class="section-title text-dark mb-3 fw-semibold pb-2 mt-4"><i class="fas fa-map-marker-alt"></i> Endereço de Entrega</h3>
                             
                             <div class="row">
                                 <div class="col-md-8 mb-3">

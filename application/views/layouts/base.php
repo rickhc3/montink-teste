@@ -28,76 +28,49 @@
 
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
         }
 
         .main-container {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
 
         .page-header {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
-            border-radius: 12px 12px 0 0;
             padding: 2rem;
+            border-radius: 8px 8px 0 0;
         }
 
         .page-title {
-            font-weight: 300;
-            font-size: 2.2rem;
-            margin: 0;
+            color: white !important;
+            margin-bottom: 0.5rem;
         }
 
         .page-title i {
-            margin-right: 0.5rem;
             opacity: 0.9;
         }
 
         .navbar {
             background: rgba(255, 255, 255, 0.95) !important;
             backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
         }
 
         .navbar-brand {
-            font-size: 1.5rem;
-            font-weight: 700;
             color: var(--primary-color) !important;
         }
 
         .card {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            overflow: hidden;
-        }
-
-        .card:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-
-        .btn {
-            border-radius: 4px;
-            padding: 0.4rem 0.8rem;
-            font-weight: 500;
-            transition: all 0.15s ease;
-            border: 1px solid transparent;
-            font-size: 0.875rem;
+            transition: none;
         }
 
         /* Botões de ação primária - azul para criar/salvar */
         .btn-primary {
             background: var(--accent-color);
             border: 1px solid var(--accent-color);
-            color: white;
         }
 
         .btn-primary:hover {
@@ -110,7 +83,6 @@
         .btn-success {
             background: var(--success-color);
             border: 1px solid var(--success-color);
-            color: white;
         }
 
         .btn-success:hover {
@@ -123,7 +95,6 @@
         .btn-danger {
             background: var(--danger-color);
             border: 1px solid var(--danger-color);
-            color: white;
         }
 
         .btn-danger:hover {
@@ -136,7 +107,6 @@
         .btn-secondary, .btn-light {
             background: var(--medium-gray);
             border: 1px solid var(--medium-gray);
-            color: white;
         }
 
         .btn-secondary:hover, .btn-light:hover {
@@ -147,7 +117,6 @@
 
         /* Botões outline - mais discretos */
         .btn-outline-primary {
-            background: transparent;
             border: 1px solid rgba(52, 152, 219, 0.3);
             color: var(--accent-color);
         }
@@ -159,7 +128,6 @@
         }
 
         .btn-outline-secondary {
-            background: transparent;
             border: 1px solid rgba(108, 117, 125, 0.3);
             color: var(--medium-gray);
         }
@@ -171,7 +139,6 @@
         }
 
         .btn-outline-danger {
-            background: transparent;
             border: 1px solid rgba(231, 76, 60, 0.3);
             color: var(--danger-color);
         }
@@ -180,20 +147,6 @@
             background: rgba(231, 76, 60, 0.1);
             border-color: var(--danger-color);
             color: var(--danger-color);
-        }
-
-        /* Botões pequenos ainda mais discretos */
-        .btn-sm {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.8rem;
-            border-radius: 3px;
-        }
-
-        .form-control, .form-select {
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            transition: all 0.2s ease;
-            padding: 0.75rem 1rem;
         }
 
         .form-control:focus, .form-select:focus {

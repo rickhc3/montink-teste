@@ -9,7 +9,7 @@ const ProductsTable = {
     },
     template: `
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table">
                 <thead class="table-dark">
                     <tr>
                         <th>ID</th>

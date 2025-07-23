@@ -93,6 +93,21 @@ class Webhook extends CI_Controller {
      */
     private function send_status_update_email($order, $new_status) {
         try {
+            // Configurar SMTP para Mailpit
+            $config = [
+                'protocol' => 'smtp',
+                'smtp_host' => 'ci3_mailpit',
+                'smtp_port' => 1025,
+                'smtp_user' => '',
+                'smtp_pass' => '',
+                'smtp_crypto' => '',
+                'mailtype' => 'html',
+                'charset' => 'utf-8',
+                'newline' => "\r\n"
+            ];
+            
+            $this->email->initialize($config);
+            
             $status_messages = [
                 'pending' => 'Seu pedido está pendente',
                 'confirmed' => 'Seu pedido foi confirmado!',
@@ -115,8 +130,12 @@ class Webhook extends CI_Controller {
             $this->email->subject($subject . ' - Pedido #' . $order->id);
             $this->email->message($message);
             
-            if (!$this->email->send()) {
-                // Falha ao enviar email de atualização de status
+            $result = $this->email->send();
+            
+            if ($result) {
+                log_message('info', 'E-mail de atualização de status enviado para: ' . $order->customer_email);
+            } else {
+                log_message('error', 'Falha ao enviar e-mail de atualização de status para: ' . $order->customer_email);
             }
         } catch (Exception $e) {
             log_message('error', 'Erro de email: ' . $e->getMessage());
@@ -128,6 +147,21 @@ class Webhook extends CI_Controller {
      */
     private function send_cancellation_email($order) {
         try {
+            // Configurar SMTP para Mailpit
+            $config = [
+                'protocol' => 'smtp',
+                'smtp_host' => 'ci3_mailpit',
+                'smtp_port' => 1025,
+                'smtp_user' => '',
+                'smtp_pass' => '',
+                'smtp_crypto' => '',
+                'mailtype' => 'html',
+                'charset' => 'utf-8',
+                'newline' => "\r\n"
+            ];
+            
+            $this->email->initialize($config);
+            
             $message = $this->load->view('emails/order_cancelled', [
                 'order' => $order
             ], true);
@@ -138,8 +172,12 @@ class Webhook extends CI_Controller {
             $this->email->subject('Pedido Cancelado - Pedido #' . $order->id);
             $this->email->message($message);
             
-            if (!$this->email->send()) {
-                // Falha ao enviar email de cancelamento
+            $result = $this->email->send();
+            
+            if ($result) {
+                log_message('info', 'E-mail de cancelamento enviado para: ' . $order->customer_email);
+            } else {
+                log_message('error', 'Falha ao enviar e-mail de cancelamento para: ' . $order->customer_email);
             }
         } catch (Exception $e) {
             log_message('error', 'Erro de email: ' . $e->getMessage());

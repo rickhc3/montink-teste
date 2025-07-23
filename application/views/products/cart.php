@@ -6,241 +6,109 @@
             --accent-color: #3498db;
             --success-color: #27ae60;
             --danger-color: #e74c3c;
-            --light-gray: #f8f9fa;
-            --medium-gray: #6c757d;
-            --border-color: #dee2e6;
         }
 
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
         }
 
         .main-container {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .page-header {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        }
+
+
+        .empty-cart-icon i {
+            font-size: 4rem;
+            opacity: 0.3;
+        }
+
+        .btn-explore-products {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent-color), #2980b9);
             color: white;
-            border-radius: 20px 20px 0 0;
-            padding: 1.5rem;
+            text-decoration: none;
+            border-radius: 50px;
+            padding: 0.75rem 2rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
+            border: none;
+            min-width: 160px;
         }
 
-        .page-title {
-            font-weight: 300;
-            font-size: 1.8rem;
-            margin: 0;
+        .btn-explore-products:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+            color: white;
+            text-decoration: none;
         }
 
-        .page-title i {
-            margin-right: 0.5rem;
-            opacity: 0.9;
+        .btn-content {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-
-        .empty-cart {
-            text-align: center;
-            padding: 2rem 1rem;
-            color: var(--medium-gray);
+        .btn-content i {
+            font-size: 1rem;
+            transition: transform 0.3s ease;
         }
 
-        .empty-cart i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
+        .btn-explore-products:hover .btn-content i {
+             transform: translateX(3px);
+         }
 
         .product-card {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 15px;
-            margin-bottom: 1rem;
             transition: all 0.3s ease;
-            overflow: hidden;
         }
 
         .product-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .product-item {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .product-item:last-child {
-            border-bottom: none;
-        }
-
-        .product-name {
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 0.25rem;
-        }
-
-        .product-variation {
-            color: var(--medium-gray);
-            font-size: 0.9rem;
         }
 
         .quantity-badge {
             background: linear-gradient(135deg, var(--accent-color), #2980b9);
-            color: white;
-            border-radius: 20px;
-            padding: 0.4rem 0.8rem;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        .price-text {
-            font-weight: 700;
-            color: var(--success-color);
-            font-size: 1.1rem;
-        }
-
-        .remove-btn {
-            background: var(--danger-color);
-            border: none;
-            color: white;
-            border-radius: 4px;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
         }
 
         .remove-btn:hover {
             transform: scale(1.1);
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
         }
 
         .summary-card {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 15px;
-            overflow: hidden;
             position: sticky;
             top: 2rem;
         }
 
-        .summary-header {
-            background: linear-gradient(135deg, var(--light-gray), #e9ecef);
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .summary-body {
-            padding: 1rem;
-        }
-
-        .cep-input-group {
-            position: relative;
-            margin-bottom: 1rem;
-        }
-
-        .cep-input {
-            border-radius: 4px;
-            border: 1px solid var(--border-color);
-            padding: 0.5rem 0.75rem;
-            transition: all 0.3s ease;
-        }
-
         .cep-input:focus {
             border-color: var(--accent-color);
-            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
         }
 
         .cep-btn {
-            border-radius: 4px;
             background: var(--accent-color);
-            border: none;
-            color: white;
-            padding: 0.5rem 1rem;
-            transition: all 0.3s ease;
         }
 
         .cep-btn:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-        }
-
-        .address-info {
-            background: var(--light-gray);
-            border-radius: 10px;
-            padding: 0.75rem;
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-            color: var(--medium-gray);
-        }
-
-        .summary-line {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.75rem;
-            padding: 0.25rem 0;
-        }
-
-        .summary-total {
-            border-top: 2px solid var(--border-color);
-            padding-top: 1rem;
-            margin-top: 1rem;
-        }
-
-        .total-amount {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--success-color);
         }
 
         .checkout-btn {
             background: var(--success-color);
-            border: none;
-            color: white;
-            border-radius: 4px;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            width: 100%;
-            margin-bottom: 0.75rem;
         }
 
         .checkout-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3);
-        }
-
-        .clear-cart-btn {
-            background: transparent;
-            border: 2px solid var(--danger-color);
-            color: var(--danger-color);
-            border-radius: 50px;
-            padding: 0.75rem 1.5rem;
-            transition: all 0.3s ease;
-            width: 100%;
         }
 
         .clear-cart-btn:hover {
-            background: var(--danger-color);
-            color: white;
             transform: translateY(-1px);
-        }
-
-        .section-header {
-            background: var(--light-gray);
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
-            color: var(--primary-color);
         }
 
         @media (max-width: 768px) {
@@ -269,29 +137,36 @@
     <div class="row justify-content-center">
         <div class="col-lg-11">
             <div class="main-container">
-                <div class="page-header">
-                    <h1 class="page-title">
-                        <i class="bi bi-cart3"></i> Carrinho de Compras
+                <div class="page-header text-white rounded-top p-4">
+                    <h1 class="fw-light fs-2 m-0">
+                        <i class="bi bi-cart3 me-2 opacity-75"></i> Carrinho de Compras
                     </h1>
                 </div>
 
                 <div class="p-4">
                     <?php if (empty($cart)): ?>
-                        <div class="empty-cart">
-                            <i class="bi bi-cart-x"></i>
-                            <h3 class="mt-3 mb-3">Seu carrinho está vazio</h3>
-                            <p class="mb-4">Descubra nossos produtos incríveis e comece suas compras!</p>
-                            <a href="<?= base_url('products') ?>" class="btn btn-primary"
-                               style="border-radius: 25px; padding: 0.75rem 1.5rem; font-size: 0.95rem; font-weight: 500;">
-                                <i class="bi bi-shop me-2"></i>Explorar Produtos
-                            </a>
+                        <div class="text-center py-5 px-4 text-muted">
+                            <div class="mb-4">
+                                <i class="bi bi-cart-x empty-cart-icon"></i>
+                            </div>
+                            <h3 class="mt-4 mb-3">Seu carrinho está vazio</h3>
+                            <p class="mb-4 text-muted">Que tal dar uma olhada em nossos produtos?</p>
+                            
+                            <div class="mt-4">
+                                <a href="<?= base_url('products') ?>" class="btn-explore-products">
+                                     <div class="btn-content">
+                                         <i class="bi bi-arrow-right"></i>
+                                         <span>Ver Produtos</span>
+                                     </div>
+                                 </a>
+                            </div>
                         </div>
                     <?php else: ?>
                         <div class="row">
                             <!-- Lista de Produtos -->
                             <div class="col-lg-8 mb-4">
-                                <div class="product-card">
-                                    <div class="section-header">
+                                <div class="product-card bg-white border rounded-3 mb-3 overflow-hidden shadow-sm">
+                                    <div class="bg-light p-3 border-bottom fw-semibold text-dark">
                                         <i class="bi bi-bag-check me-2"></i>Produtos Selecionados
                                     </div>
                                     <div class="card-body p-0">
@@ -300,26 +175,27 @@
                                         foreach ($cart as $key => $item):
                                             $subtotal += $item['price'] * $item['quantity'];
                                             ?>
-                                            <div class="product-item">
+                                            <div class="p-3 border-bottom">
                                                 <div class="row align-items-center">
                                                     <div class="col-md-6">
-                                                        <h6 class="product-name"><?= htmlspecialchars($item['name']) ?></h6>
-                                                        <div class="product-variation">
+                                                        <h6 class="fw-semibold text-dark mb-1"><?= htmlspecialchars($item['name']) ?></h6>
+                                                        <div class="text-muted small">
                                                             <i class="bi bi-tag me-1"></i><?= htmlspecialchars($item['variation']) ?>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-2 text-center">
-                                                            <span class="quantity-badge">
+                                                            <span class="quantity-badge text-white rounded-pill px-3 py-2 small fw-medium">
                                                                 <i class="bi bi-box me-1"></i><?= $item['quantity'] ?>
                                                             </span>
                                                     </div>
                                                     <div class="col-md-3 text-end">
-                                                        <div class="price-text">
+                                                        <div class="fw-bold text-success fs-5">
                                                             R$ <?= number_format($item['price'] * $item['quantity'], 2, ',', '.') ?></div>
                                                     </div>
                                                     <div class="col-md-1 text-end">
                                                         <button type="button"
-                                                                class="remove-btn"
+                                                                class="btn btn-danger btn-sm d-flex align-items-center justify-content-center"
+                                                                style="width: 32px; height: 32px;"
                                                                 onclick="removeItem('<?= $key ?>')"
                                                                 title="Remover item">
                                                             <i class="bi bi-trash"></i>
@@ -334,36 +210,36 @@
 
                             <!-- Resumo e Frete -->
                             <div class="col-lg-4">
-                                <div class="summary-card">
-                                    <div class="summary-header">
+                                <div class="summary-card bg-white border rounded-3 overflow-hidden shadow-sm">
+                                    <div class="bg-light p-3 border-bottom fw-semibold text-dark">
                                         <i class="bi bi-calculator me-2"></i>Resumo do Pedido
                                     </div>
-                                    <div class="summary-body">
+                                    <div class="p-3">
                                         <div class="mb-4">
                                             <label class="form-label fw-bold mb-3">
                                                 <i class="bi bi-geo-alt me-2"></i>Calcular Frete
                                             </label>
-                                            <div class="cep-input-group">
+                                            <div class="mb-3">
                                                 <div class="input-group">
-                                                    <input type="text" id="cep" class="form-control cep-input"
+                                                    <input type="text" id="cep" class="form-control"
                                                            placeholder="Digite seu CEP" maxlength="9">
                                                     <button type="button" onclick="calculateShipping()"
-                                                            class="btn cep-btn">
+                                                            class="btn cep-btn text-white border-0">
                                                         <i class="bi bi-search"></i>
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div id="address-info" class="address-info" style="display: none;">
+                                            <div id="address-info" class="bg-light rounded p-3 mt-2 small text-muted" style="display: none;">
                                                 <i class="bi bi-house me-2"></i>
                                                 <span id="address-text"></span>
                                             </div>
                                         </div>
 
-                                        <div class="summary-line">
+                                        <div class="d-flex justify-content-between mb-3 py-1">
                                             <span>Subtotal:</span>
                                             <strong>R$ <?= number_format($subtotal, 2, ',', '.') ?></strong>
                                         </div>
-                                        <div class="summary-line">
+                                        <div class="d-flex justify-content-between mb-3 py-1">
                                             <span>Frete:</span>
                                             <strong id="shipping-cost">A calcular</strong>
                                         </div>
@@ -399,24 +275,24 @@
                                             </div>
                                         </div>
 
-                                        <div class="summary-line" id="coupon-discount-line" style="display: none;">
+                                        <div class="d-flex justify-content-between mb-3 py-1" id="coupon-discount-line" style="display: none;">
                                             <span>Desconto:</span>
                                             <strong class="text-success" id="coupon-discount-amount">- R$ 0,00</strong>
                                         </div>
 
-                                        <div class="summary-total">
+                                        <div class="border-top pt-3 mt-3">
                                             <div class="d-flex justify-content-between align-items-center">
-                                                <span class="fw-bold">Total:</span>
-                                                <span class="total-amount"
+                                                <span class="fw-bold fs-5">Total:</span>
+                                                <span class="fw-bold fs-4 text-success"
                                                       id="total-cost">R$ <?= number_format($subtotal, 2, ',', '.') ?></span>
                                             </div>
                                         </div>
 
                                         <div class="mt-4">
-                                            <button type="button" onclick="finalizeOrder()" class="checkout-btn">
+                                            <button type="button" onclick="finalizeOrder()" class="btn checkout-btn w-100 text-white border-0 py-3 fw-semibold mb-2">
                                                 <i class="bi bi-credit-card me-2"></i>Finalizar Compra
                                             </button>
-                                            <button type="button" onclick="clearCart()" class="clear-cart-btn">
+                                            <button type="button" onclick="clearCart()" class="btn clear-cart-btn w-100 text-white border-0 py-2">
                                                 <i class="bi bi-trash me-2"></i>Limpar Carrinho
                                             </button>
                                         </div>
@@ -500,13 +376,19 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label for="checkout_customer_phone" class="form-label">Telefone *</label>
                                     <input type="tel" class="form-control" id="checkout_customer_phone"
                                            name="customer_phone" required
                                            style="border-radius: 8px; border: 2px solid #e9ecef; padding: 12px 15px;">
                                 </div>
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
+                                    <label for="checkout_customer_document" class="form-label">CPF/CNPJ</label>
+                                    <input type="text" class="form-control" id="checkout_customer_document"
+                                           name="customer_document" placeholder="000.000.000-00"
+                                           style="border-radius: 8px; border: 2px solid #e9ecef; padding: 12px 15px;">
+                                </div>
+                                <div class="col-md-4 mb-3">
                                     <label for="checkout_customer_cep" class="form-label">CEP *</label>
                                     <input type="text" class="form-control" id="checkout_customer_cep"
                                            name="customer_cep" required maxlength="9" placeholder="00000-000"

@@ -10,8 +10,43 @@ services:
             - .:/var/www/html
         environment:
             - CI_ENV=development
-            - DB_DRIVER=sqlite3
-            - DB_DATABASE=database/montink.db
+            - DB_DRIVER=mysqli
+            - DB_HOST=mysql
+            - DB_USERNAME=root
+            - DB_PASSWORD=root123
+            - DB_DATABASE=montink
+        depends_on:
+            - mysql
+
+    mysql:
+        image: mysql:8.0
+        container_name: ci3_mysql
+        restart: unless-stopped
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: root123
+            MYSQL_DATABASE: montink
+            MYSQL_USER: montink_user
+            MYSQL_PASSWORD: montink123
+        volumes:
+            - mysql_data:/var/lib/mysql
+            - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+        command: --default-authentication-plugin=mysql_native_password
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: ci3_phpmyadmin
+        restart: unless-stopped
+        ports:
+            - "8081:80"
+        environment:
+            PMA_HOST: mysql
+            PMA_USER: root
+            PMA_PASSWORD: root123
+            MYSQL_ROOT_PASSWORD: root123
+        depends_on:
+            - mysql
 
     mailpit:
         image: axllent/mailpit
@@ -23,3 +58,6 @@ services:
         environment:
             MP_SMTP_AUTH_ACCEPT_ANY: 1
             MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+volumes:
+    mysql_data:
