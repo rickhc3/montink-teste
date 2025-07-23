@@ -258,10 +258,6 @@ window.addEventListener('load', function() {
                     }
 
                     if (this.$refs.productModal) {
-                        // Chamando productModal.show()
-                            product: product,
-                            isEdit: true
-                        });
                         this.$refs.productModal.show(product, true);
                     } else {
                         console.error('productModal ref não encontrado');
