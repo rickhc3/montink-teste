@@ -97,13 +97,40 @@ changed_at (TIMESTAMP)
 ```
 
 #### `webhook_logs`
+Tabela para registrar todas as chamadas de webhook recebidas, incluindo sucessos e falhas.
+
 ```sql
 id (INT, PK, AUTO_INCREMENT)
 order_id (INT)
-status (VARCHAR(50))
-payload (TEXT)
-response (TEXT)
-created_at (TIMESTAMP)
+old_status (VARCHAR(50))     -- Status anterior do pedido
+new_status (VARCHAR(50))     -- Novo status solicitado
+webhook_data (TEXT)          -- Payload completo recebido
+processed_at (TIMESTAMP)     -- Data/hora do processamento
+success (BOOLEAN)            -- Se o webhook foi processado com sucesso
+error_message (TEXT)         -- Mensagem de erro (se houver)
+```
+
+**Funcionalidades implementadas:**
+- ✅ Log automático de todas as chamadas webhook
+- ✅ Registro de sucessos e falhas
+- ✅ Armazenamento do payload completo
+- ✅ Endpoint para consultar logs: `GET /webhook/logs`
+- ✅ Filtros por pedido, status e falhas
+- ✅ Paginação de resultados
+
+**Endpoints disponíveis:**
+```bash
+# Listar todos os logs
+GET /webhook/logs
+
+# Logs de um pedido específico
+GET /webhook/logs?order_id=123
+
+# Apenas logs com falhas
+GET /webhook/logs?failed_only=1
+
+# Com paginação
+GET /webhook/logs?limit=20&offset=40
 ```
 
 ## 🐳 Instalação e Configuração
@@ -294,6 +321,56 @@ APP_ENV=development
 # 3. Ajuste limites de memória PHP
 # 4. Configure backup automático
 # 5. Monitore logs de erro
+```
+
+## 🔗 API Endpoints
+
+### Webhooks
+
+#### Atualizar Status do Pedido
+```bash
+POST /webhook/order_status
+Content-Type: application/json
+
+{
+  "order_id": 123,
+  "status": "confirmed",
+  "notes": "Pagamento aprovado"
+}
+```
+
+**Status válidos:** `pending`, `confirmed`, `processing`, `shipped`, `delivered`, `cancelled`
+
+#### Consultar Logs de Webhook
+```bash
+# Todos os logs
+GET /webhook/logs
+
+# Logs de um pedido específico
+GET /webhook/logs?order_id=123
+
+# Apenas logs com falhas
+GET /webhook/logs?failed_only=1
+
+# Com paginação
+GET /webhook/logs?limit=20&offset=40
+```
+
+#### Health Check
+```bash
+GET /webhook/health
+```
+
+### Produtos
+```bash
+GET /products          # Listar produtos
+GET /products/{id}     # Detalhes do produto
+```
+
+### Cupons
+```bash
+GET /coupons           # Listar cupons
+POST /coupons/validate # Validar cupom
 ```
 
 ## 📖 Como Usar

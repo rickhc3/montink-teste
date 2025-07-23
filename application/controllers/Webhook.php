@@ -4,12 +4,15 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Webhook extends CI_Controller {
 
     public $Order_model;
+    public $Webhook_logs_model;
     public $load;
     public $email;
+    public $input;
 
     public function __construct() {
         parent::__construct();
         $this->load->model('Order_model');
+        $this->load->model('Webhook_logs_model');
         $this->load->library('email');
     }
 
@@ -27,6 +30,16 @@ class Webhook extends CI_Controller {
 
         // Validate required fields
         if (!isset($data['order_id']) || !isset($data['status'])) {
+            // Log failed webhook - missing required fields
+            $this->Webhook_logs_model->log_webhook(
+                $data['order_id'] ?? null,
+                null,
+                $data['status'] ?? null,
+                $input,
+                false,
+                'Campos obrigatórios ausentes: order_id, status'
+            );
+            
             http_response_code(400);
             echo json_encode(['error' => 'Campos obrigatórios ausentes: order_id, status']);
             return;
@@ -39,6 +52,16 @@ class Webhook extends CI_Controller {
 
         $valid_statuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
         if (!in_array($new_status, $valid_statuses)) {
+            // Log failed webhook - invalid status
+            $this->Webhook_logs_model->log_webhook(
+                $order_id,
+                null,
+                $new_status,
+                $input,
+                false,
+                'Status inválido. Status válidos: ' . implode(', ', $valid_statuses)
+            );
+            
             http_response_code(400);
             echo json_encode(['error' => 'Status inválido. Status válidos: ' . implode(', ', $valid_statuses)]);
             return;
@@ -47,22 +70,54 @@ class Webhook extends CI_Controller {
 
         $order = $this->Order_model->get_order($order_id);
         if (!$order) {
+            // Log failed webhook - order not found
+            $this->Webhook_logs_model->log_webhook(
+                $order_id,
+                null,
+                $new_status,
+                $input,
+                false,
+                'Pedido não encontrado'
+            );
+            
             http_response_code(404);
             echo json_encode(['error' => 'Pedido não encontrado']);
             return;
         }
 
+        $old_status = $order->status;
+        
         try {
             // Handle cancelled orders - delete them
             if ($new_status === 'cancelled') {
                 $result = $this->Order_model->delete_order($order_id);
                 if ($result['success']) {
+                    // Log successful webhook - order cancelled
+                    $this->Webhook_logs_model->log_webhook(
+                        $order_id,
+                        $old_status,
+                        $new_status,
+                        $input,
+                        true,
+                        null
+                    );
+                    
                     // Send cancellation email
                     $this->send_cancellation_email($order);
                     
                     log_message('info', "Order {$order_id} cancelled and deleted via webhook");
                     echo json_encode(['success' => true, 'message' => 'Pedido cancelado e excluído']);
                 } else {
+                    // Log failed webhook - deletion error
+                    $this->Webhook_logs_model->log_webhook(
+                        $order_id,
+                        $old_status,
+                        $new_status,
+                        $input,
+                        false,
+                        $result['message']
+                    );
+                    
                     http_response_code(500);
                     echo json_encode(['error' => $result['message']]);
                 }
@@ -71,17 +126,47 @@ class Webhook extends CI_Controller {
                 $result = $this->Order_model->update_status($order_id, $new_status, 'webhook', $notes);
                 
                 if ($result['success']) {
+                    // Log successful webhook - status updated
+                    $this->Webhook_logs_model->log_webhook(
+                        $order_id,
+                        $old_status,
+                        $new_status,
+                        $input,
+                        true,
+                        null
+                    );
+                    
                     // Send status update email
                     $this->send_status_update_email($order, $new_status);
                     
                     log_message('info', "Order {$order_id} status updated to {$new_status} via webhook");
                     echo json_encode(['success' => true, 'message' => 'Status do pedido atualizado']);
                 } else {
+                    // Log failed webhook - update error
+                    $this->Webhook_logs_model->log_webhook(
+                        $order_id,
+                        $old_status,
+                        $new_status,
+                        $input,
+                        false,
+                        $result['message']
+                    );
+                    
                     http_response_code(500);
                     echo json_encode(['error' => $result['message']]);
                 }
             }
         } catch (Exception $e) {
+            // Log failed webhook - exception
+            $this->Webhook_logs_model->log_webhook(
+                $order_id,
+                $old_status,
+                $new_status,
+                $input,
+                false,
+                'Erro interno: ' . $e->getMessage()
+            );
+            
             log_message('error', 'Webhook error: ' . $e->getMessage());
             http_response_code(500);
             echo json_encode(['error' => 'Erro interno do servidor']);
@@ -182,6 +267,42 @@ class Webhook extends CI_Controller {
         } catch (Exception $e) {
             log_message('error', 'Erro de email: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Get webhook logs
+     * GET /webhook/logs?order_id=123&limit=50&offset=0&failed_only=1
+     */
+    public function logs() {
+        $order_id = $this->input->get('order_id');
+        $limit = (int)($this->input->get('limit') ?? 50);
+        $offset = (int)($this->input->get('offset') ?? 0);
+        $failed_only = $this->input->get('failed_only') === '1';
+        
+        if ($order_id) {
+            // Get logs for specific order
+            $logs = $this->Webhook_logs_model->get_logs_by_order($order_id);
+            $total = count($logs);
+        } elseif ($failed_only) {
+            // Get only failed logs
+            $logs = $this->Webhook_logs_model->get_failed_logs($limit, $offset);
+            $total = $this->Webhook_logs_model->count_failed_logs();
+        } else {
+            // Get all logs
+            $logs = $this->Webhook_logs_model->get_all_logs($limit, $offset);
+            $total = $this->Webhook_logs_model->count_logs();
+        }
+        
+        echo json_encode([
+            'success' => true,
+            'data' => $logs,
+            'pagination' => [
+                'total' => $total,
+                'limit' => $limit,
+                'offset' => $offset,
+                'has_more' => ($offset + $limit) < $total
+            ]
+        ]);
     }
 
     /**

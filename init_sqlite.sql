@@ -93,7 +93,7 @@ CREATE TABLE order_status_history (
 
 CREATE TABLE webhook_logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    order_id INTEGER NOT NULL,
+    order_id INTEGER,
     old_status TEXT,
     new_status TEXT NOT NULL,
     webhook_data TEXT,
